@@ -1,0 +1,22 @@
+{
+	"name": "@charjkl/browser-std",
+	"version": "1.0.0",
+	"description": "My browser standard library.",
+	"files": [
+		"/dist"
+	],
+	"exports": {
+		"./backend": "./dist/backend.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/charJKL/browser.std"
+	},
+	"scripts": {
+		"build": "tsc --project tsconfig.json"
+	},
+	"devDependencies": {
+		"@types/firefox-webext-browser": "^120.0.4",
+		"typescript": "^5.6.2"
+	}
+}

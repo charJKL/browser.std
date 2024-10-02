@@ -1,4 +1,5 @@
 import { BrowserApiError } from "../BrowserApiError";
+import { type ApiReturn } from "../ApiReturn.type";
 
 // #region private types
 type StorageArea = browser.storage.StorageArea;
@@ -6,15 +7,12 @@ type StorageBlueprint = { [key: string]: unknown }; // TODO supports only simple
 type StorageBlueprintKeyName<B extends StorageBlueprint> = Exclude<keyof B, symbol | number>;
 // #endregion
 
-type ApiReturn<T0, T1, T2 = void> = Promise<T0 | T1 | T2>;
 // #region errors
-
 type StorageFailsInfo = {storage: Storage<StorageBlueprint>, key: StorageBlueprintKeyName<StorageBlueprint>, reason: unknown};
 export class StorageGetMethodFails extends BrowserApiError<StorageFailsInfo> { }
 export class StorageSetMethodFails extends BrowserApiError<StorageFailsInfo> { }
 export class StorageRemoveMethodFails extends BrowserApiError<StorageFailsInfo> { }
 // #endregion 
-
 
 // #region Storage
 // TODO implement support for Map<>.

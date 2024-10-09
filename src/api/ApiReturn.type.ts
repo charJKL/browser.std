@@ -1,1 +1,1 @@
-export type ApiReturn<T0, T1 = void, T2 = void, T3 = void> = Promise<T0 | T1 | T2 | T3>;
+export type ApiReturn<T0, T1 = never, T2 = never, T3 = never> = Promise<T0 | T1 | T2 | T3>;

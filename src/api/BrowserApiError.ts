@@ -11,10 +11,14 @@ export abstract class BrowserApiError<ID, I>
 	 */
 	// @ts-ignore 
 	private id: ID;
-	private info : I
+	private info : I;
+	private cause: BrowserApiError<any, any> | null;
 	
 	constructor(info: I)
+	constructor(info: I, cause: BrowserApiError<any, any>)
+	constructor(info: I, cause?: BrowserApiError<any, any>)
 	{
 		this.info = info;
+		this.cause = cause ?? null;
 	}
 }

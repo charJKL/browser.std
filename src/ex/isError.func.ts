@@ -1,6 +1,6 @@
-type ErrorId = abstract new (...args: any) => any;
 
-export function isError<T extends ErrorId>(type: T, value: any) : value is InstanceType<T>
+type ErrorIds<T> = { new (...args: any) : T }
+export function isError<T extends ErrorIds<V>, V>(type: T, value: V) : value is InstanceType<T>
 {
 	if(value instanceof type) return true;
 	return false;

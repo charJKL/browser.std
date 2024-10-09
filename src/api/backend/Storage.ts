@@ -9,9 +9,9 @@ type StorageBlueprintKeyName<B extends StorageBlueprint> = Exclude<keyof B, symb
 
 // #region errors
 type StorageFailsInfo = {storage: Storage<StorageBlueprint>, key: StorageBlueprintKeyName<StorageBlueprint>, reason: unknown};
-export class StorageGetMethodFails extends BrowserApiError<StorageFailsInfo> { }
-export class StorageSetMethodFails extends BrowserApiError<StorageFailsInfo> { }
-export class StorageRemoveMethodFails extends BrowserApiError<StorageFailsInfo> { }
+export class StorageGetMethodFails extends BrowserApiError<"StorageGetMethodFails", StorageFailsInfo> { }
+export class StorageSetMethodFails extends BrowserApiError<"StorageSetMethodFails", StorageFailsInfo> { }
+export class StorageRemoveMethodFails extends BrowserApiError<"StorageRemoveMethodFails", StorageFailsInfo> { }
 // #endregion 
 
 // #region Storage

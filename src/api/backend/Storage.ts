@@ -8,10 +8,8 @@ type StorageBlueprintKeyName<B extends StorageBlueprint> = Exclude<keyof B, symb
 // #endregion
 
 // #region errors
-type StorageFailsInfo = {storage: Storage<StorageBlueprint>, key: StorageBlueprintKeyName<StorageBlueprint>, reason: unknown};
-export class StorageGetMethodFails extends BrowserApiError<"StorageGetMethodFails", StorageFailsInfo> { }
-export class StorageSetMethodFails extends BrowserApiError<"StorageSetMethodFails", StorageFailsInfo> { }
-export class StorageRemoveMethodFails extends BrowserApiError<"StorageRemoveMethodFails", StorageFailsInfo> { }
+class StorageError<ID, I> extends BrowserApiError<ID, Storage<any>, I>{ };
+export class StorageApiCallError extends StorageError<"StorageApiCallError", {}>{ };
 // #endregion 
 
 // #region Storage
@@ -27,28 +25,28 @@ export class Storage<B extends StorageBlueprint>
 		this.blueprint = blueprint;
 	}
 	
-	public get<K extends StorageBlueprintKeyName<B>>(key: K) : ApiReturn<B[K], StorageGetMethodFails>
+	public get<K extends StorageBlueprintKeyName<B>>(key: K) : ApiReturn<B[K], StorageApiCallError>
 	{
 		const entry = { key: this.blueprint[key] }; 
 		const flatternReturnedObject = (obj: StorageBlueprint) : B[K] => obj[key] as B[K]; // TODO does casting is nessessary?
-		const onExceptionReturnBrowserApiError = (reason: unknown) => new StorageGetMethodFails({storage: this, key, reason});
+		const onExceptionReturnBrowserApiError = (reason: string) => new StorageApiCallError(this, this.storage.get, {key, entry}, reason);
 		return this.storage.get(entry).then(flatternReturnedObject).catch(onExceptionReturnBrowserApiError);
 	}
 	
-	public save<K extends StorageBlueprintKeyName<B>>(key: K, value: B[K]) : ApiReturn<B[K], StorageSetMethodFails>
+	public save<K extends StorageBlueprintKeyName<B>>(key: K, value: B[K]) : ApiReturn<B[K], StorageApiCallError>
 	{
 		// TODO check if storage limit is exceeded.
 		const entry = { [key]: value };
 		const returnSavedObject = () => value;
-		const onExceptionReturnBrowserApiError = (reason: unknown) => new StorageSetMethodFails({storage: this, key, reason});
-		return this.storage.set(entry).then(returnSavedObject).catch(onExceptionReturnBrowserApiError);
+		const returnError = (reason: string) => new StorageApiCallError(this, this.storage.set, {key, value, entry}, reason);
+		return this.storage.set(entry).then(returnSavedObject).catch(returnError);
 	}
 	
-	public remove<K extends StorageBlueprintKeyName<B>>(key: K) : ApiReturn<boolean, StorageRemoveMethodFails>
+	public remove<K extends StorageBlueprintKeyName<B>>(key: K) : ApiReturn<boolean, StorageApiCallError>
 	{
 		const returnTrueOnSucess = () => true;
-		const onExceptionReturnBrowserApiError = (reason: unknown) => new StorageRemoveMethodFails({storage: this, key, reason});
-		return this.storage.remove(key).then(returnTrueOnSucess).catch(onExceptionReturnBrowserApiError);
+		const returnError = (reason: string) => new StorageApiCallError(this, this.storage.remove, {key}, reason);
+		return this.storage.remove(key).then(returnTrueOnSucess).catch(returnError);
 	}
 }
 

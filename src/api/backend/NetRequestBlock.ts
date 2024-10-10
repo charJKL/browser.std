@@ -30,6 +30,9 @@ export class NetRequestBlock
 {
 	private redirect: string;
 	
+	/**
+	 * @param redirect page url must be listed in `web_accessible_resources`.
+	 */
 	public constructor(redirect: string)
 	{
 		this.redirect = redirect;
@@ -49,15 +52,15 @@ export class NetRequestBlock
 		
 		const uniqueId = await this.getRuleUniqueId();
 		if(isError(GetRuleUniqueIdError, uniqueId)) return uniqueId;
-
+		
 		// TODO check if limit of rules are exceeded.
 		
 		// build netRequestRule:
 		const regexFilter = rule.regexp;
-		const extensionPath = this.redirect;
+		const regexSubstitution = this.redirect;
 		const netRequestRuleBase = {id: uniqueId, priority: 1 };
-		const netRequestRuleCondition : NetRequestRuleCondition = { regexFilter , isUrlFilterCaseSensitive: false };
-		const netRequestRuleAction : NetRequestRuleAction = { type: "redirect", redirect: { extensionPath } };
+		const netRequestRuleCondition : NetRequestRuleCondition = { regexFilter, resourceTypes: ["main_frame", "sub_frame"], isUrlFilterCaseSensitive: false };
+		const netRequestRuleAction : NetRequestRuleAction = { type: "redirect", redirect: { regexSubstitution } };
 		const netRequestRule : NetRequestRule = { ...netRequestRuleBase, action: netRequestRuleAction, condition: netRequestRuleCondition };
 		
 		const packet : NetRequestUpdatePacket = { addRules: [netRequestRule] }
@@ -69,12 +72,12 @@ export class NetRequestBlock
 	
 	public async updateRule(): ApiReturn<void>
 	{
-		
+		// TODO
 	}
 	
 	public async deleteRule(): ApiReturn<void>
 	{
-		
+		// TODO
 	}
 	
 	private async isRegexpSupported(regexp: string) : ApiReturn<boolean | NetRequestBlockApiCallError | RegexpIsNotSupported>

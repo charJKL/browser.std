@@ -1,5 +1,5 @@
 {
-	"name": "ff-browser-std",
+	"name": "@charjkl/browser.std",
 	"version": "2.0.0",
 	"description": "My browser standard library.",
 	"files": [

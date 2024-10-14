@@ -13,11 +13,16 @@
 		"url": "https://github.com/charJKL/browser.std"
 	},
 	"scripts": {
+		"lint": "eslint ./",
 		"build": "cdir ./dist && tsc --project tsconfig.json"
 	},
 	"devDependencies": {
+		"@eslint/js": "^9.12.0",
+		"@types/eslint__js": "^8.42.3",
 		"@types/firefox-webext-browser": "^120.0.4",
 		"clear-directory": "^1.0.7",
-		"typescript": "^5.6.2"
+		"eslint": "^9.12.0",
+		"typescript": "^5.6.3",
+		"typescript-eslint": "^8.8.1"
 	}
 }

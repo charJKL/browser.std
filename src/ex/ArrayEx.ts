@@ -1,5 +1,5 @@
 
-export class ArrayEx
+export class ArrayEx // eslint-disable-line @typescript-eslint/no-extraneous-class -- there is not other way to implement it
 {
 	public static IsEmpty<T>(array: Array<T>) : boolean
 	{

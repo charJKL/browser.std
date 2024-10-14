@@ -1,6 +1,6 @@
 import { BrowserApiError } from "../BrowserApiError";
 import { ApiReturn } from "../ApiReturn.type";
-import { isError, isUndefined } from "../../ex";
+import { isError } from "../../ex";
 import { ArrayEx } from "../../ex";
 
 // #region private type
@@ -19,9 +19,9 @@ export type NetRequestRulePart = { regexp: string };
 
 
 // #region errors
-abstract class NetRequestBlockError<ID, I> extends BrowserApiError<ID, NetRequestBlock, I>{ };
-export class NetRequestBlockApiCallError extends NetRequestBlockError<"NetRequestBlockCallError", {}>{ };
-export class GetRuleUniqueIdError extends NetRequestBlockError<"GetRuleUniqueIdError", {}> { };
+abstract class NetRequestBlockError<ID extends string, I extends object> extends BrowserApiError<ID, NetRequestBlock, I>{ };
+export class NetRequestBlockApiCallError extends NetRequestBlockError<"NetRequestBlockCallError", object>{ };
+export class GetRuleUniqueIdError extends NetRequestBlockError<"GetRuleUniqueIdError", object> { };
 export class RegexpIsNotSupported extends NetRequestBlockError<"RegexpIsNotSupported", {regexp: string, reason: string}>{ };
 // #endregion
 
@@ -40,7 +40,7 @@ export class NetRequestBlock
 	
 	public async getRules(): ApiReturn<NetRequestRule[], NetRequestBlockApiCallError>
 	{
-		const returnError = (reason: string) => new NetRequestBlockApiCallError(this, browser.declarativeNetRequest.getDynamicRules, {}, reason);
+		const returnError = (reason: unknown) => new NetRequestBlockApiCallError(this, "Internal browser call `declarativeNetRequest.getDynamicRules()` throw error", {}, reason);
 		return browser.declarativeNetRequest.getDynamicRules().catch(returnError);
 	}
 	
@@ -64,7 +64,7 @@ export class NetRequestBlock
 		const netRequestRule : NetRequestRule = { ...netRequestRuleBase, action: netRequestRuleAction, condition: netRequestRuleCondition };
 		
 		const packet : NetRequestUpdatePacket = { addRules: [netRequestRule] }
-		const returnError = (reason: string) => new NetRequestBlockApiCallError(this, browser.declarativeNetRequest.updateSessionRules, {packet}, reason);
+		const returnError = (reason: unknown) => new NetRequestBlockApiCallError(this, "Interal browser call `declarativeNetRequest.updateSessionRules()` throw error", {packet}, reason);
 		const result = await browser.declarativeNetRequest.updateDynamicRules(packet).catch(returnError);
 		if(isError(NetRequestBlockApiCallError, result)) return result;
 		return netRequestRule;
@@ -83,11 +83,11 @@ export class NetRequestBlock
 	private async isRegexpSupported(regexp: string) : ApiReturn<boolean | NetRequestBlockApiCallError | RegexpIsNotSupported>
 	{
 		const regexpOptions : RegexOptions = { regex: regexp, isCaseSensitive: false, requireCapturing: true };
-		const returnError = (reason: string) => new NetRequestBlockApiCallError(this, browser.declarativeNetRequest.isRegexSupported, {regexp}, reason);
+		const returnError = (reason: unknown) => new NetRequestBlockApiCallError(this, "Internal browser call `declarativeNetRequest.isRegexSupported()` throw error.", {regexp}, reason);
 		const isRegexpSupportedResult = await browser.declarativeNetRequest.isRegexSupported(regexpOptions).catch(returnError);
 		if(isError(NetRequestBlockApiCallError, isRegexpSupportedResult)) return isRegexpSupportedResult;
 		
-		const regexpIsNotSupported = (result: IsRegexSupportedResult) : result is Required<IsRegexSupportedResult> => result.isSupported === false;
+		const regexpIsNotSupported = (result: IsRegexSupportedResult) : result is Required<IsRegexSupportedResult> => result.isSupported === false; // eslint-disable-line @typescript-eslint/no-unnecessary-boolean-literal-compare -- it's matter of style
 		if(regexpIsNotSupported(isRegexpSupportedResult)) return new RegexpIsNotSupported(this, "Provided regexp is not supported by browser.", {regexp, reason: isRegexpSupportedResult.reason});
 		return isRegexpSupportedResult.isSupported;
 	}

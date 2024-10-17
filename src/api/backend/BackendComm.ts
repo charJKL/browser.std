@@ -1,22 +1,9 @@
-import { CommProtocol, InvalidPacketDescError, type Packet } from "../CommProtocol";
+import { CommProtocol, CorruptedPacketError, type Packet } from "../CommProtocol";
+import type { MessageBlueprintParametered, MessageBlueprint, SupportedMessages, PacketResponse } from "../CommProtocol";
+import type { NotificationData, SupportedNotifications } from "../CommProtocol";
+import type { MessageSender, SendResponse, Variants } from "../CommProtocol";
 import { BrowserApiError } from "../BrowserApiError";
-import { isError, isUndefined } from "../../ex";
-
-type MessageSender = browser.runtime.MessageSender;
-type SendResponse = (response?: unknown) => void;
-
-
-type MessageVariant = string;
-type MessageBlueprintParametless = () => unknown;
-type MessageBlueprintParametered = (args: any) => unknown; // TODO what to do with `any`?
-type MessageBlueprint = MessageBlueprintParametless | MessageBlueprintParametered;
-type SupportedMessages = { [variant: MessageVariant]: MessageBlueprint };
-
-
-type NotifiactionVariant = string;
-type NotifiactionBlueprint = () => unknown;
-type SupportedNotifications = { [variant: NotifiactionVariant]: NotifiactionBlueprint };
-
+import { ApiReturn } from "../ApiReturn.type";
 type AllowListenerBeAsync<T> = Promise<T> | T;
 type MessageArgs<B extends MessageBlueprint> = B extends MessageBlueprintParametered ? Parameters<B>[0] : undefined;
 type MessageCommArgs<B extends MessageBlueprint> = B extends MessageBlueprintParametered ? {sender: MessageSender} & MessageArgs<B> : {sender: MessageSender};
@@ -27,7 +14,7 @@ type NotificationData<B extends NotifiactionBlueprint> = ReturnType<B>;
 
 type Variants<L> = keyof L & string;
 
-class InvalidPacketError extends BrowserApiError<"InvalidPacketDescError", BackendComm<any, any>, {rawPacket: unknown, sender: MessageSender}>{ }; // TODO what to do with any?
+class InvalidPacketError extends BrowserApiError<"InvalidPacketDescError", BackendComm<any, any>, {rawPacket: unknown, sender: MessageSender}>{ }; // TODO what to do with any? 
 class MissingListenerError extends BrowserApiError<"MissingListnerError", BackendComm<any, any>, {packet: Packet, sender: MessageSender}>{ }; // TODO what to do with any?
 
 
@@ -56,13 +43,13 @@ export class BackendComm<SM extends SupportedMessages, SN extends SupportedNotif
 		try
 		{
 			const packet = CommProtocol.ValidatePacket(rawPacket);
-			if(isError(InvalidPacketDescError, packet)) throw new InvalidPacketError(this, "Message packet is invalid.", {rawPacket, sender});
+			if(isError(CorruptedPacketError, packet)) throw new InvalidPacketError(this, "Message packet is invalid.", {rawPacket, sender});
 			const listener = this.listeners.get(packet.variant);
 			if(isUndefined(listener)) throw new MissingListenerError(this, "Listener for packet is not set.", {packet, sender});
 			void (async function() {
 				const args = { sender, ...packet.payload };
 				const result = await listener(args);
-				const response = CommProtocol.Pack(result);
+				const response = CommProtocol.Pack(packet.variant, result);
 				sendResponse(response);
 			})();
 			return true;

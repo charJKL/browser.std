@@ -20,7 +20,7 @@ export type NetRequestRulePart = { regexp: string };
 
 // #region errors
 abstract class NetRequestBlockError<ID extends string, I extends object> extends BrowserApiError<ID, NetRequestBlock, I>{ };
-export class NetRequestBlockApiCallError extends NetRequestBlockError<"NetRequestBlockCallError", object>{ };
+export class NetRequestBlockApiCallError extends NetRequestBlockError<"NetRequestBlockApiCallError", object>{ };
 export class GetRuleUniqueIdError extends NetRequestBlockError<"GetRuleUniqueIdError", object> { };
 export class RegexpIsNotSupported extends NetRequestBlockError<"RegexpIsNotSupported", {regexp: string, reason: string}>{ };
 // #endregion

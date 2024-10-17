@@ -1,5 +1,5 @@
 import { CommProtocol, CorruptedPacketError, type Packet } from "../CommProtocol";
-import type { MessageBlueprintParametered, MessageBlueprint, SupportedMessages, PacketResponse } from "../CommProtocol";
+import type { MessageBlueprintParametered, MessageBlueprintArgs, MessageBlueprint, SupportedMessages, PacketResponse } from "../CommProtocol";
 import type { NotificationData, SupportedNotifications } from "../CommProtocol";
 import type { MessageSender, SendResponse, Variants } from "../CommProtocol";
 import { BrowserApiError } from "../BrowserApiError";
@@ -8,10 +8,9 @@ import { ApiReturn } from "../ApiReturn.type";
 
 type BrowserTab = browser.tabs.Tab;
 type AllowListenerBeAsync<T> = Promise<T> | T;
-type MessageArgs<B extends MessageBlueprint> = B extends MessageBlueprintParametered ? Parameters<B>[0] : undefined;
-type MessageCommArgs<B extends MessageBlueprint> = B extends MessageBlueprintParametered ? {sender: MessageSender} & MessageArgs<B> : {sender: MessageSender};
-type MessageCommReturn<B extends MessageBlueprint> = AllowListenerBeAsync<ReturnType<B>>;
-type MessageCommListener<B extends MessageBlueprint> = (args: MessageCommArgs<B>) => MessageCommReturn<B>;
+type MessageArgs<B extends MessageBlueprint> = B extends MessageBlueprintParametered ? {sender: MessageSender} & MessageBlueprintArgs<B> : {sender: MessageSender};
+type MessageReturn<B extends MessageBlueprint> = AllowListenerBeAsync<ReturnType<B>>;
+type MessageListener<B extends MessageBlueprint> = (args: MessageArgs<B>) => MessageReturn<B>;
 
 // #region errors
 class TabsApiCallError extends BrowserApiError<"TabsApiCallError",  BackendComm<any, any>, {tabUrl: string} | {tab: BrowserTab, packet: PacketResponse}>{ };
@@ -23,7 +22,7 @@ class MissingListenerError extends BrowserApiError<"MissingListnerError", Backen
 
 export class BackendComm<SM extends SupportedMessages, SN extends SupportedNotifications>
 {
-	private listeners: Map<Variants<SM>, MessageCommListener<MessageBlueprint>>
+	private listeners: Map<Variants<SM>, MessageListener<MessageBlueprint>>
 	
 	public constructor()
 	{
@@ -31,7 +30,7 @@ export class BackendComm<SM extends SupportedMessages, SN extends SupportedNotif
 		this.listeners = new Map();
 	}
 	
-	public addMessageListener<V extends Variants<SM>>(variant: V, listeners: MessageCommListener<SM[V]>) : void
+	public addMessageListener<V extends Variants<SM>>(variant: V, listeners: MessageListener<SM[V]>) : void
 	{
 		this.listeners.set(variant, listeners);
 	}

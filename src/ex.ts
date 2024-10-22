@@ -1,5 +1,6 @@
 export { ArrayEx } from "./ex/ArrayEx";
 export { hasProp } from "./ex/hasProp.func";
+export { isArray, isNotArray } from "./ex/isArray.func";
 export { isError } from "./ex/isError.func";
 export { isFunction } from "./ex/isFunction.func";
 export { isNull, isNotNull } from "./ex/isNull.func";

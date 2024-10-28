@@ -6,7 +6,9 @@
 		"/dist"
 	],
 	"exports": {
-		"./backend": "./dist/backend.js"
+		"./backend": "./dist/backend.js",
+		"./frontend": "./dist/frontend.js",
+		"./ex": "./dist/ex.js"
 	},
 	"repository": {
 		"type": "git",

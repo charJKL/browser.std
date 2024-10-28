@@ -1,9 +1,9 @@
-import { RuntimeEvent } from "./AddonLifecycle/RuntimeEvent";
-import { type InstalledDetails , type UpdateAvailableDetails } from "./AddonLifecycle/RuntimeEventTypes";
+export type InstalledDetails = browser.runtime._OnInstalledDetails;
+export type UpdateAvailableDetails = browser.runtime._OnUpdateAvailableDetails;
 
-export type InstaltionDetails = InstalledDetails;
-export type UpdateDetails = UpdateAvailableDetails;
-
+/**
+ * AddonLifecycle class
+ */
 export class AddonLifecycle
 {
 	private readonly starting: RuntimeEvent<"onStartup">;
@@ -45,4 +45,45 @@ export class AddonLifecycle
 		this.suspendingCanceled = new RuntimeEvent("onSuspendCanceled");
 		this.updateAvailable = new RuntimeEvent("onUpdateAvailable");
 	}
+}
+
+/**
+ * Private class RuntimeEvent 
+ */
+type SupportedRuntimeEvents = keyof RuntimeEventTypes;
+type SupportedRuntimeEventsBlueprint<T extends SupportedRuntimeEvents> = RuntimeEventTypes[T];
+
+class RuntimeEvent<T extends SupportedRuntimeEvents>
+{
+	private type: T;
+	
+	public constructor(type: T)
+	{
+		this.type = type;
+	}
+	
+	public add(handler: SupportedRuntimeEventsBlueprint<T>) : this
+	{
+		browser.runtime[this.type].addListener(handler as () => void);
+		return this;
+	}
+	
+	public remove(listener: SupportedRuntimeEventsBlueprint<T>) : this
+	{
+		browser.runtime[this.type].removeListener(listener as () => void);
+		return this;
+	}
+}
+
+
+/**
+ * Private class RuntimeEventTypes
+ */
+interface RuntimeEventTypes
+{
+	"onStartup": () => void,
+	"onInstalled": (details: InstalledDetails) => void,
+	"onSuspend": () => void,
+	"onSuspendCanceled": () => void,
+	"onUpdateAvailable": (details: UpdateAvailableDetails) => void
 }

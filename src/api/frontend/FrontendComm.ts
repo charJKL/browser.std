@@ -1,9 +1,9 @@
-import { CommProtocol, CorruptedPacketError } from "../CommProtocol";
-import type { MessageBlueprintArgs, MessageBlueprintResponse, Packet, SupportedMessages } from "../CommProtocol";
-import type { NotificationBlueprint, NotificationData, SupportedNotifications } from "../CommProtocol";
-import type { MessageSender, SendResponse, Variants } from "../CommProtocol";
-import { isError, IComparable, MultiMap } from "../../ex";
-import { BrowserApiError } from "../BrowserApiError";
+import { CommProtocol, CorruptedPacketError } from "src/api/CommProtocol";
+import type { MessageBlueprintArgs, MessageBlueprintResponse, Packet, SupportedMessages } from "src/api/CommProtocol";
+import type { NotificationBlueprint, NotificationData, SupportedNotifications } from "src/api/CommProtocol";
+import type { MessageSender, SendResponse, Variants } from "src/api/CommProtocol";
+import { isError, IComparable, MultiMap } from "src/ex";
+import { BrowserApiError } from "src/api/BrowserApiError";
 
 export type NotificationListener<B extends NotificationBlueprint> = (...data: NotificationData<B>) => void;
 

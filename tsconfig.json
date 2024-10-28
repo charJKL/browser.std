@@ -6,6 +6,10 @@
 		"module": "NodeNext",
 		"moduleResolution": "NodeNext",
 		"declaration": true,
+		"paths":
+		{
+			"src/*": ["./src/*"]
+		},
 		
 		"noEmitOnError": true,
 		"strict": true

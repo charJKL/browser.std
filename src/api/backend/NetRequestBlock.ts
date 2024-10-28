@@ -1,7 +1,6 @@
-import { BrowserApiError } from "../BrowserApiError";
-import { ApiReturn } from "../ApiReturn.type";
-import { isError } from "../../ex";
-import { ArrayEx } from "../../ex";
+import { BrowserApiError } from "src/api/BrowserApiError";
+import { ApiReturn } from "src/api/ApiReturn.type";
+import { ArrayEx, isError } from "src/ex";
 
 // #region private type
 type NetRequestRuleCondition = browser.declarativeNetRequest._RuleCondition;

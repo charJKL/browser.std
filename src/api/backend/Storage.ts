@@ -1,5 +1,5 @@
-import { BrowserApiError } from "../BrowserApiError";
-import { type ApiReturn } from "../ApiReturn.type";
+import { BrowserApiError } from "src/api/BrowserApiError";
+import { type ApiReturn } from "src/api/ApiReturn.type";
 
 // #region private types
 type StorageArea = browser.storage.StorageArea;

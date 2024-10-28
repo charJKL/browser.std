@@ -1,11 +1,10 @@
-import { CommProtocol, CorruptedPacketError, type Data, type Packet } from "../CommProtocol";
-import type { MessageBlueprintArgs, MessageBlueprint, SupportedMessages, MessageBlueprintResponse } from "../CommProtocol";
-import type { NotificationData, SupportedNotifications } from "../CommProtocol";
-import type { MessageSender, SendResponse, Variants } from "../CommProtocol";
-import { BrowserApiError } from "../BrowserApiError";
-import { ArrayEx, isError, isUndefined, isNotArray } from "../../ex";
-import { ApiReturn } from "../ApiReturn.type";
-import { safeCast } from "../../ex";
+import { CommProtocol, CorruptedPacketError, type Data, type Packet } from "src/api/CommProtocol";
+import type { MessageBlueprintArgs, MessageBlueprint, SupportedMessages, MessageBlueprintResponse } from "src/api/CommProtocol";
+import type { NotificationData, SupportedNotifications } from "src/api/CommProtocol";
+import type { MessageSender, SendResponse, Variants } from "src/api/CommProtocol";
+import { BrowserApiError } from "src/api/BrowserApiError";
+import { ArrayEx, safeCast, isError, isUndefined, isNotArray } from "src/ex";
+import { ApiReturn } from "src/api/ApiReturn.type";
 
 type BrowserTab = browser.tabs.Tab;
 type AllowListenerBeAsync<T> = Promise<T> | T;

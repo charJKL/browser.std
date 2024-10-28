@@ -1,4 +1,4 @@
-import { StdError } from "../ex/StdError";
+import { StdError } from "src/ex";
 
 /**
  * Base class for all errors returned from API calls.

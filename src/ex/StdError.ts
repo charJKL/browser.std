@@ -12,14 +12,15 @@ export abstract class StdError<ID extends string, I extends object> extends Erro
 	 */
 	// @ts-expect-error: reason is in the comment above.
 	private id: ID;
-	private message: string;
+	private _message: string;
 	private info : I;
-	private cause: unknown;
+	private _cause: unknown;
 	
 	constructor(message: string, info: I, cause?: unknown)
 	{
-		this.message = message;
+		super(message);
+		this._message = message;
 		this.info = info;
-		this.cause = isNotUndefined(cause) ? cause : null;
+		this._cause = isNotUndefined(cause) ? cause : null;
 	}
 }

@@ -6,44 +6,44 @@ export type UpdateAvailableDetails = browser.runtime._OnUpdateAvailableDetails;
  */
 export class AddonLifecycle
 {
-	private readonly starting: RuntimeEvent<"onStartup">;
-	private readonly installed: RuntimeEvent<"onInstalled">;
-	private readonly suspending: RuntimeEvent<"onSuspend">;
-	private readonly suspendingCanceled: RuntimeEvent<"onSuspendCanceled">;
-	private readonly updateAvailable: RuntimeEvent<"onUpdateAvailable">;
+	private readonly $starting: RuntimeEvent<"onStartup">;
+	private readonly $installed: RuntimeEvent<"onInstalled">;
+	private readonly $suspending: RuntimeEvent<"onSuspend">;
+	private readonly $suspendingCanceled: RuntimeEvent<"onSuspendCanceled">;
+	private readonly $updateAvailable: RuntimeEvent<"onUpdateAvailable">;
 	
 	public get Starting()
 	{ 
-		return this.starting 
+		return this.$starting 
 	};
 	
 	public get Installed()
 	{
-		return this.installed;
+		return this.$installed;
 	}
 	
 	public get Suspending()
 	{
-		return this.suspending;
+		return this.$suspending;
 	}
 	
 	public get SuspendingCanceled()
 	{
-		return this.suspendingCanceled;
+		return this.$suspendingCanceled;
 	}
 	
 	public get UpdateAvailable()
 	{
-		return this.updateAvailable;
+		return this.$updateAvailable;
 	}
 	
 	constructor()
 	{
-		this.starting = new RuntimeEvent("onStartup");
-		this.installed = new RuntimeEvent("onInstalled");
-		this.suspending = new RuntimeEvent("onSuspend");
-		this.suspendingCanceled = new RuntimeEvent("onSuspendCanceled");
-		this.updateAvailable = new RuntimeEvent("onUpdateAvailable");
+		this.$starting = new RuntimeEvent("onStartup");
+		this.$installed = new RuntimeEvent("onInstalled");
+		this.$suspending = new RuntimeEvent("onSuspend");
+		this.$suspendingCanceled = new RuntimeEvent("onSuspendCanceled");
+		this.$updateAvailable = new RuntimeEvent("onUpdateAvailable");
 	}
 }
 
@@ -55,22 +55,22 @@ type SupportedRuntimeEventsBlueprint<T extends SupportedRuntimeEvents> = Runtime
 
 class RuntimeEvent<T extends SupportedRuntimeEvents>
 {
-	private type: T;
+	private readonly $type: T;
 	
 	public constructor(type: T)
 	{
-		this.type = type;
+		this.$type = type;
 	}
 	
 	public add(handler: SupportedRuntimeEventsBlueprint<T>) : this
 	{
-		browser.runtime[this.type].addListener(handler as () => void);
+		browser.runtime[this.$type].addListener(handler as () => void);
 		return this;
 	}
 	
 	public remove(listener: SupportedRuntimeEventsBlueprint<T>) : this
 	{
-		browser.runtime[this.type].removeListener(listener as () => void);
+		browser.runtime[this.$type].removeListener(listener as () => void);
 		return this;
 	}
 }

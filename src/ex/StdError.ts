@@ -11,16 +11,16 @@ export abstract class StdError<ID extends string, I extends object> extends Erro
 	 * Read more on https://www.typescriptlang.org/docs/handbook/2/classes.html#relationships-between-classes.
 	 */
 	// @ts-expect-error: reason is in the comment above.
-	private id: ID;
-	private _message: string;
-	private info : I;
-	private _cause: unknown;
+	private readonly $id: ID;
+	private readonly $message: string;
+	private readonly $info : I;
+	private readonly $cause: unknown;
 	
 	constructor(message: string, info: I, cause?: unknown)
 	{
 		super(message);
-		this._message = message;
-		this.info = info;
-		this._cause = isNotUndefined(cause) ? cause : null;
+		this.$message = message;
+		this.$info = info;
+		this.$cause = isNotUndefined(cause) ? cause : null;
 	}
 }

@@ -7,7 +7,7 @@ export interface IComparable<T>
 
 export class MultiMap<K, V>
 {
-	private $map: Map<K, Array<V>>;
+	private readonly $map: Map<K, Array<V>>;
 	
 	public constructor()
 	{

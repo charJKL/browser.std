@@ -16,21 +16,21 @@ export class StorageApiCallError extends StorageError<"StorageApiCallError", obj
 // TODO implement support for Map<>.
 export class Storage<B extends StorageBlueprint>
 {
-	private storage: StorageArea;
-	private blueprint: B;
+	private readonly $storage: StorageArea;
+	private readonly $blueprint: B;
 	
 	constructor(storage: StorageArea, blueprint: B)
 	{
-		this.storage = storage;
-		this.blueprint = blueprint;
+		this.$storage = storage;
+		this.$blueprint = blueprint;
 	}
 	
 	public get<K extends StorageBlueprintKeyName<B>>(key: K) : ApiReturn<B[K], StorageApiCallError>
 	{
-		const entry = { key: this.blueprint[key] }; 
+		const entry = { key: this.$blueprint[key] }; 
 		const flatternReturnedObject = (obj: StorageBlueprint) : B[K] => obj[key] as B[K]; // TODO does casting is nessessary?
 		const returnError = (reason: unknown) => new StorageApiCallError(this, "Browser internal api call `storage.get()` throw error", {key, entry}, reason);
-		return this.storage.get(entry).then(flatternReturnedObject).catch(returnError);
+		return this.$storage.get(entry).then(flatternReturnedObject).catch(returnError);
 	}
 	
 	public save<K extends StorageBlueprintKeyName<B>>(key: K, value: B[K]) : ApiReturn<B[K], StorageApiCallError>
@@ -39,14 +39,14 @@ export class Storage<B extends StorageBlueprint>
 		const entry = { [key]: value };
 		const returnSavedObject = () => value;
 		const returnError = (reason: unknown) => new StorageApiCallError(this, "Browser internal api call `storage.set()` throw error", {key, value, entry}, reason);
-		return this.storage.set(entry).then(returnSavedObject).catch(returnError);
+		return this.$storage.set(entry).then(returnSavedObject).catch(returnError);
 	}
 	
 	public remove<K extends StorageBlueprintKeyName<B>>(key: K) : ApiReturn<boolean, StorageApiCallError> // eslint-disable-line @typescript-eslint/no-unnecessary-type-parameters -- matter of code style
 	{
 		const returnTrueOnSucess = () => true;
 		const returnError = (reason: unknown) => new StorageApiCallError(this, "Browser internal api call `storage.remove()` throw error", {key}, reason);
-		return this.storage.remove(key).then(returnTrueOnSucess).catch(returnError);
+		return this.$storage.remove(key).then(returnTrueOnSucess).catch(returnError);
 	}
 }
 

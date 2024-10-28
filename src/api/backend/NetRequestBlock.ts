@@ -27,14 +27,14 @@ export class RegexpIsNotSupported extends NetRequestBlockError<"RegexpIsNotSuppo
 // #region NetRequestBlock
 export class NetRequestBlock
 {
-	private redirect: string;
+	private readonly $redirect: string;
 	
 	/**
 	 * @param redirect page url must be listed in `web_accessible_resources`.
 	 */
 	public constructor(redirect: string)
 	{
-		this.redirect = redirect;
+		this.$redirect = redirect;
 	}
 	
 	public async getRules(): ApiReturn<NetRequestRule[], NetRequestBlockApiCallError>
@@ -56,7 +56,7 @@ export class NetRequestBlock
 		
 		// build netRequestRule:
 		const regexFilter = rule.regexp;
-		const regexSubstitution = this.redirect;
+		const regexSubstitution = this.$redirect;
 		const netRequestRuleBase = {id: uniqueId, priority: 1 };
 		const netRequestRuleCondition : NetRequestRuleCondition = { regexFilter, resourceTypes: ["main_frame", "sub_frame"], isUrlFilterCaseSensitive: false };
 		const netRequestRuleAction : NetRequestRuleAction = { type: "redirect", redirect: { regexSubstitution } };

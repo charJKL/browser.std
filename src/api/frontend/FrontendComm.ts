@@ -12,12 +12,12 @@ export class BrowserRuntimeApiCallError extends BrowserApiError<"BrowserRuntimeA
 
 export class FrontendComm<SM extends SupportedMessages, SN extends SupportedNotifications>
 {
-	private listeners: MultiMap<Variants<SN>, NotificationListenerRecord>
+	private readonly $listeners: MultiMap<Variants<SN>, NotificationListenerRecord>
 	
 	public constructor()
 	{
 		browser.runtime.onMessage.addListener(this.dispatchNotification.bind(this));
-		this.listeners = new MultiMap();
+		this.$listeners = new MultiMap();
 	}
 	
 	public async sendMessage<V extends Variants<SM>>(variant: V, args: MessageBlueprintArgs<SM[V]>) : Promise<MessageBlueprintResponse<SM[V]>>
@@ -33,14 +33,14 @@ export class FrontendComm<SM extends SupportedMessages, SN extends SupportedNoti
 	
 	public addNotificationListener<V extends Variants<SN>>(variant: V, listener: NotificationListener<SN[V]>) : void
 	{
-		this.listeners.set(variant, new NotificationListenerRecord(listener));
+		this.$listeners.set(variant, new NotificationListenerRecord(listener));
 	}
 	
 	private dispatchNotification(rawPacket: unknown, sender: MessageSender, sendResponse: SendResponse)
 	{
 		const packet = CommProtocol.ValidatePacket(rawPacket);
 		if(isError(CorruptedPacketError, packet)) return; // TODO what to do now? Where to log it?
-		const listeners = this.listeners.get(packet.variant);
+		const listeners = this.$listeners.get(packet.variant);
 					listeners.forEach(listener => {listener.listener(packet.data)});
 	}
 }

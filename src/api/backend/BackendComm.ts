@@ -24,17 +24,17 @@ class MissingListenerError extends BrowserApiError<"MissingListnerError", Backen
  */
 export class BackendComm<SM extends SupportedMessages, SN extends SupportedNotifications>
 {
-	private listeners: Map<Variants<SM>, MessageListener<MessageBlueprint>>
+	private readonly $listeners: Map<Variants<SM>, MessageListener<MessageBlueprint>>
 	
 	public constructor()
 	{
 		browser.runtime.onMessage.addListener(this.dispatchMessage.bind(this));
-		this.listeners = new Map();
+		this.$listeners = new Map();
 	}
 	
 	public addMessageListener<V extends Variants<SM>>(variant: V, listeners: MessageListener<SM[V]>) : void
 	{
-		this.listeners.set(variant, safeCast<MessageListener<SM[V]>, MessageListener<MessageBlueprint>>(listeners));
+		this.$listeners.set(variant, safeCast<MessageListener<SM[V]>, MessageListener<MessageBlueprint>>(listeners));
 	}
 	
 	public async sendNotification<V extends Variants<SN>>(tabUrl: string, variant: V, data: NotificationData<SN[V]>) : ApiReturn<boolean, TabsApiCallError, NoTabsWasFound, SendWasntSuccessfulError>
@@ -67,7 +67,7 @@ export class BackendComm<SM extends SupportedMessages, SN extends SupportedNotif
 		{
 			const packet = CommProtocol.ValidatePacket(payload);
 			if(isError(CorruptedPacketError, packet)) throw new InvalidPacketError(this, "Message packet is invalid.", {payload, sender});
-			const listener = this.listeners.get(packet.variant);
+			const listener = this.$listeners.get(packet.variant);
 			if(isUndefined(listener)) throw new MissingListenerError(this, "Listener for packet is not set.", {packet, sender});
 			if(isNotArray(packet.data)) throw new Error(); // TODO
 			const args = [...packet.data, sender] as const;

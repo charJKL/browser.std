@@ -25,9 +25,10 @@ export class FrontendComm<SM extends SupportedMessages, SN extends SupportedNoti
 		const packet = CommProtocol.Pack(variant, args);
 		const returnError = (reason: unknown) => new BrowserRuntimeApiCallError(this, "Internal browser call `runtime.sendMessage()` throw error.", {packet}, reason);
 		const response = await browser.runtime.sendMessage(packet).catch(returnError) as unknown; // TODO do not use iline casting
+		console.log("FrontendComm.sendMessage", "response=", response);
 		const result = CommProtocol.ValidatePacket(response);
 		if(isError(CorruptedPacketError, result)) return 1 as any; // TODO
-		return result as any; // TODO
+		return result.data as any; // TODO
 	}
 	
 	public addNotificationListener<V extends Variants<SN>>(variant: V, listener: NotificationListener<SN[V]>) : void

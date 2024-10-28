@@ -1,5 +1,5 @@
-export type InstalledDetails = browser.runtime._OnInstalledDetails;
-export type UpdateAvailableDetails = browser.runtime._OnUpdateAvailableDetails;
+export type InstallationDetails = browser.runtime._OnInstalledDetails;
+export type UpdateDetails = browser.runtime._OnUpdateAvailableDetails;
 
 /**
  * AddonLifecycle class
@@ -82,8 +82,8 @@ class RuntimeEvent<T extends SupportedRuntimeEvents>
 interface RuntimeEventTypes
 {
 	"onStartup": () => void,
-	"onInstalled": (details: InstalledDetails) => void,
+	"onInstalled": (details: InstallationDetails) => void,
 	"onSuspend": () => void,
 	"onSuspendCanceled": () => void,
-	"onUpdateAvailable": (details: UpdateAvailableDetails) => void
+	"onUpdateAvailable": (details: UpdateDetails) => void
 }

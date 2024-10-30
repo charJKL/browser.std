@@ -1,58 +1,80 @@
 import { CommProtocol, CorruptedPacketError } from "src/api/CommProtocol";
-import type { MessageBlueprintArgs, MessageBlueprintResponse, Packet, SupportedMessages } from "src/api/CommProtocol";
-import type { NotificationBlueprint, NotificationData, SupportedNotifications } from "src/api/CommProtocol";
-import type { MessageSender, SendResponse, Variants } from "src/api/CommProtocol";
-import { isError, IComparable, MultiMap } from "src/ex";
+import type { MessageSender, SendResponse, Packet, Data, Variants, ProtocolBlueprint, ProtocolBlueprintArgs, ProtocolBlueprintResponse, SupportedProtocol } from "src/api/CommProtocol";
+import { IComparable, ArrayEx, MultiMap, isError, safeCast, isNotArray } from "src/ex";
 import { BrowserApiError } from "src/api/BrowserApiError";
 
-export type NotificationListener<B extends NotificationBlueprint> = (...data: NotificationData<B>) => void;
+type AllowListenerBeAsync<T> = Promise<T> | T;
+type MessageListenerArgs<B extends ProtocolBlueprint> = [...ProtocolBlueprintArgs<B>, MessageSender];
+type MessageListener<B extends ProtocolBlueprint> = (...args: MessageListenerArgs<B>) => AllowListenerBeAsync<void>;
 
-// #region errors
-export class BrowserRuntimeApiCallError extends BrowserApiError<"BrowserRuntimeApiCallError", FrontendComm<any, any>, {packet: Packet}>{ } 
-
-export class FrontendComm<SM extends SupportedMessages, SN extends SupportedNotifications>
-{
-	private readonly $listeners: MultiMap<Variants<SN>, NotificationListenerRecord>
-	
-	public constructor()
-	{
-		browser.runtime.onMessage.addListener(this.dispatchNotification.bind(this));
-		this.$listeners = new MultiMap();
-	}
-	
-	public async sendMessage<V extends Variants<SM>>(variant: V, args: MessageBlueprintArgs<SM[V]>) : Promise<MessageBlueprintResponse<SM[V]>>
-	{
-		const packet = CommProtocol.Pack(variant, args);
-		const returnError = (reason: unknown) => new BrowserRuntimeApiCallError(this, "Internal browser call `runtime.sendMessage()` throw error.", {packet}, reason);
-		const response = await browser.runtime.sendMessage(packet).catch(returnError) as unknown; // TODO do not use iline casting
-		console.log("FrontendComm.sendMessage", "response=", response);
-		const result = CommProtocol.ValidatePacket(response);
-		if(isError(CorruptedPacketError, result)) return 1 as any; // TODO
-		return result.data as any; // TODO
-	}
-	
-	public addNotificationListener<V extends Variants<SN>>(variant: V, listener: NotificationListener<SN[V]>) : void
-	{
-		this.$listeners.set(variant, new NotificationListenerRecord(listener));
-	}
-	
-	private dispatchNotification(rawPacket: unknown, sender: MessageSender, sendResponse: SendResponse)
-	{
-		const packet = CommProtocol.ValidatePacket(rawPacket);
-		if(isError(CorruptedPacketError, packet)) return; // TODO what to do now? Where to log it?
-		const listeners = this.$listeners.get(packet.variant);
-					listeners.forEach(listener => {listener.listener(packet.data)});
-	}
-}
+// errors
+export class BrowserRuntimeApiCallError extends BrowserApiError<"BrowserRuntimeApiCallError", FrontendComm<any>, {packet: Packet}>{ } 
+export class CorruptedPacketDataError extends BrowserApiError<"CorruptedPacketDataError", FrontendComm<any>, {packet: Packet}>{ };
+export class NoListenerPresent extends BrowserApiError<"NoListenerPresent", FrontendComm<any>, {packet: Packet}>{ };
+export class CommError extends BrowserApiError<"CommError", FrontendComm<any>, {packet: Packet, response: unknown}> {};
 
 /**
  * 
  */
+export class FrontendComm<SP extends SupportedProtocol>
+{
+	private readonly $listeners: MultiMap<Variants<SP>, NotificationListenerRecord>;
+	
+	constructor()
+	{
+		browser.runtime.onMessage.addListener(this.dispatchMessage.bind(this));
+		this.$listeners = new MultiMap();
+	}
+	
+	public addMessageListener<V extends Variants<SP>>(variant: V, listener: MessageListener<SP[V]>) : void
+	{
+		this.$listeners.set(variant, new NotificationListenerRecord(safeCast<MessageListener<SP[V]>, MessageListener<ProtocolBlueprint>>(listener)));
+	}
+	
+	public async sendMessage<V extends Variants<SP>>(variant: V, ...data: ProtocolBlueprintArgs<SP[V]>) : Promise<ProtocolBlueprintResponse<SP[V]> | CommError>
+	{
+		console.log("FrontendComm.sendMessage()", "variant=", variant, "data=", data);
+		const returnError = (reason: unknown) => new BrowserRuntimeApiCallError(this, "Internal browser call `runtime.sendMessage()` throw error.", {packet}, reason);
+		const packet = CommProtocol.Pack(variant, data);
+		const response = await browser.runtime.sendMessage(packet).catch(returnError) as unknown; // TODO remove casting
+		if(isError(BrowserRuntimeApiCallError, response)) return new CommError(this, "Unknow error occur during communication with background script.", {packet, response}, response);
+		const result = CommProtocol.ValidatePacket(response);
+		if(isError(CorruptedPacketError, result)) return new CommError(this, "Response packet is corrupted.", {packet, response}, result);
+		return result.data;
+	}
+	
+	private dispatchMessage(payload: unknown, sender: MessageSender) : boolean
+	{
+		console.log("FrontendComm.dispatchMessage()", "payload=", payload, "sender=", sender); // TODO for debug only
+		void this.dispatchMessageToListener(payload, sender).then((result) => {
+			if(isError(CorruptedPacketError, result)) return; // TODO this should be logged somewhere.
+			if(isError(CorruptedPacketDataError, result)) return;
+			if(isError(NoListenerPresent, result)) return;
+			// we don't support send response back.
+		});
+		return false;
+	}
+	
+	private async dispatchMessageToListener(payload: unknown, sender: MessageSender) : Promise<"Send" | CorruptedPacketError | CorruptedPacketDataError | NoListenerPresent>
+	{
+		const packet = CommProtocol.ValidatePacket(payload);
+		if(isError(CorruptedPacketError, packet)) return packet;
+		if(isNotArray(packet.data)) return new CorruptedPacketDataError(this, "Data sended from background script is corrupted.", {packet});
+		const listeners = this.$listeners.get(packet.variant);
+		if(ArrayEx.IsEmpty(listeners)) return new NoListenerPresent(this, "There isn't any listener for this message", {packet});
+		listeners.forEach(async record => {await record.listener.call(undefined, ...safeCast<Data, Array<Data>>(packet.data), sender)});
+		return "Send";
+	}
+}
+
+/**
+ * NotificationListenerRecord
+ */
 class NotificationListenerRecord implements IComparable<NotificationListenerRecord>
 {
-	private $listener: NotificationListener<NotificationBlueprint>;
+	private $listener: MessageListener<ProtocolBlueprint>;
 	
-	public constructor(listener: NotificationListener<NotificationBlueprint>)
+	public constructor(listener: MessageListener<ProtocolBlueprint>)
 	{
 		this.$listener = listener;
 	}

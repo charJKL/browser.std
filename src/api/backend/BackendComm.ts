@@ -57,7 +57,7 @@ export class BackendComm<SP extends SupportedProtocol>
 		const assuredData = isUndefined(data) ? [] : data;
 		const packet = CommProtocol.Pack(variant, assuredData);
 		const returnError = (reason: unknown) => new TabsApiCallError(this,  "Internal browser call `tabs.sendMessage()` throw error.", {tab, packet}, reason);
-		const result = await browser.tabs.sendMessage(tab.id, packet).catch(returnError) as Promise<unknown> | TabsApiCallError; // result is discarded // TODO remove casting 
+		const result = await browser.tabs.sendMessage(tab.id, packet).catch(returnError) as unknown; // result is discarded // TODO remove casting 
 		if(isError(TabsApiCallError, result)) return result;
 		return "Sended";
 	}

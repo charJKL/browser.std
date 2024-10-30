@@ -1,4 +1,4 @@
-import { isNotUndefined } from "src/ex";
+import { isNotUndefined } from "src/util";
 
 /**
  * Base class for all errors returned from API calls.

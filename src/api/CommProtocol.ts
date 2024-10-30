@@ -1,4 +1,4 @@
-import { StdError } from "src/ex";
+import { StdError } from "src/util";
 
 export type MessageSender = browser.runtime.MessageSender;
 export type SendResponse = (response?: unknown) => void;

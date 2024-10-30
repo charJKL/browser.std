@@ -1,4 +1,4 @@
-import { isNotNull, isNotUndefined } from "src/ex";
+import { isNotNull, isNotUndefined } from "src/util";
 
 export function hasProp<S extends string>(value: any, prop: S) : value is {[Key in S]: unknown}
 {

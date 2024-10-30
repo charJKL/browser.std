@@ -8,7 +8,7 @@
 	"exports": {
 		"./backend": "./dist/backend.js",
 		"./frontend": "./dist/frontend.js",
-		"./ex": "./dist/ex.js"
+		"./util": "./dist/util.js"
 	},
 	"repository": {
 		"type": "git",

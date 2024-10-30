@@ -1,6 +1,6 @@
 import { BrowserApiError } from "src/api/BrowserApiError";
 import { ApiReturn } from "src/api/ApiReturn.type";
-import { ArrayEx, isError } from "src/ex";
+import { ArrayEx, isError } from "src/util";
 
 // #region private type
 type NetRequestRuleCondition = browser.declarativeNetRequest._RuleCondition;

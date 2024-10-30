@@ -5,7 +5,15 @@ export interface IComparable<T>
 	isEqual(this: T, obj: T): boolean;
 }
 
-export class MultiMap<K, V>
+/**
+ * List of types which are easy comparable.
+ */
+type IsComperable = string | number | IComparable<unknown>;
+
+/**
+ * MultiMap
+ */
+export class MultiMap<K, V extends IsComperable>
 {
 	private readonly $map: Map<K, Array<V>>;
 	

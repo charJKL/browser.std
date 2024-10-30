@@ -2,27 +2,21 @@ import { StdError } from "src/ex";
 
 export type MessageSender = browser.runtime.MessageSender;
 export type SendResponse = (response?: unknown) => void;
-
-type MessageVariant = string;
-export type MessageBlueprint = { args: Array<Data>, response: Data };
-export type MessageBlueprintArgs<B extends MessageBlueprint> = B["args"];
-export type MessageBlueprintResponse<B extends MessageBlueprint> = B["response"];
-export type SupportedMessages = { [variant: MessageVariant]: MessageBlueprint };
-
-type NotifiactionVariant = string;
-export type NotificationBlueprint = { args: Array<Data> };
-export type NotificationData<B extends NotificationBlueprint> = B["args"];
-export type SupportedNotifications = { [variant: NotifiactionVariant]: NotificationBlueprint };
-
-export type AddonScriptApiMethod<Args extends MessageBlueprint["args"], Response extends MessageBlueprint["response"]> = { args: Args, response: Response };
-export type AddonScriptApiNotification<Args extends MessageBlueprint["args"]> = { args: Args };
 export type Variants<L> = keyof L & string;
 export type Data = { [key: string]: Data } | Array<Data> | string | boolean | number;
 export type Packet = { variant: string, data: Data };
 
+export type ProtocolVariant = string;
+export type ProtocolBlueprint = { args: Array<Data>, response: Data };
+export type ProtocolBlueprintArgs<B extends ProtocolBlueprint> = B["args"];
+export type ProtocolBlueprintResponse<B extends ProtocolBlueprint> = B["response"];
+export type SupportedProtocol = { [variant: ProtocolVariant]: ProtocolBlueprint }
+
+export type AddonScriptApiMethod<Args extends ProtocolBlueprint["args"], Response extends ProtocolBlueprint["response"]> = { args: Args, response: Response };
+export type AddonScriptApiNotification<Args extends ProtocolBlueprint["args"]> = { args: Args };
 
 // errors 
-export class CorruptedPacketError extends StdError<"CorruptedPacketError", object>{ };
+export class CorruptedPacketError extends StdError<"CorruptedPacketError", {payload: unknown}>{ };
 
 /**
  * 

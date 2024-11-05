@@ -1,4 +1,4 @@
-import { hasProp } from "src/util";
+import { hasProp } from "src/util/func/hasProp";
 
 export interface IComparable<T>
 {

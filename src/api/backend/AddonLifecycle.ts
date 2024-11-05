@@ -1,16 +1,15 @@
-export type InstallationDetails = browser.runtime._OnInstalledDetails;
-export type UpdateDetails = browser.runtime._OnUpdateAvailableDetails;
+import { Api } from "src/api/Api";
 
 /**
  * AddonLifecycle class
  */
 export class AddonLifecycle
 {
-	private readonly $starting: RuntimeEvent<"onStartup">;
-	private readonly $installed: RuntimeEvent<"onInstalled">;
-	private readonly $suspending: RuntimeEvent<"onSuspend">;
-	private readonly $suspendingCanceled: RuntimeEvent<"onSuspendCanceled">;
-	private readonly $updateAvailable: RuntimeEvent<"onUpdateAvailable">;
+	private readonly $starting : RuntimeEvent<typeof Api.runtime.onStartUp>;
+	private readonly $installed: RuntimeEvent<typeof Api.runtime.onInstalled>;
+	private readonly $suspending: RuntimeEvent<typeof Api.runtime.onSuspend>;
+	private readonly $suspendingCanceled: RuntimeEvent<typeof Api.runtime.onSuspendCanceled>;
+	private readonly $updateAvailable: RuntimeEvent<typeof Api.runtime.onUpdateAvailable>;
 	
 	public get Starting()
 	{ 
@@ -39,21 +38,33 @@ export class AddonLifecycle
 	
 	constructor()
 	{
-		this.$starting = new RuntimeEvent("onStartup");
-		this.$installed = new RuntimeEvent("onInstalled");
-		this.$suspending = new RuntimeEvent("onSuspend");
-		this.$suspendingCanceled = new RuntimeEvent("onSuspendCanceled");
-		this.$updateAvailable = new RuntimeEvent("onUpdateAvailable");
+		this.$starting = new RuntimeEvent(Api.runtime.onStartUp);
+		this.$installed = new RuntimeEvent(Api.runtime.onInstalled);
+		this.$suspending = new RuntimeEvent(Api.runtime.onSuspend);
+		this.$suspendingCanceled = new RuntimeEvent(Api.runtime.onSuspendCanceled);
+		this.$updateAvailable = new RuntimeEvent(Api.runtime.onUpdateAvailable);
 	}
 }
 
-/**
- * Private class RuntimeEvent 
- */
-type SupportedRuntimeEvents = keyof RuntimeEventTypes;
-type SupportedRuntimeEventsBlueprint<T extends SupportedRuntimeEvents> = RuntimeEventTypes[T];
 
-class RuntimeEvent<T extends SupportedRuntimeEvents>
+/**
+ * IRuntimeEvent
+ */
+interface IRuntimeEvent
+{
+	addListener(cb: unknown): void
+	removeListener(cb: unknown): void
+}
+
+/**
+ * RuntimeEventTypeCallback
+ */
+type RuntimeEventTypeCallback<T extends IRuntimeEvent> = Parameters<T["addListener"]>[0];
+
+/**
+ * RuntimeEvent
+ */
+class RuntimeEvent<T extends IRuntimeEvent> 
 {
 	private readonly $type: T;
 	
@@ -62,28 +73,13 @@ class RuntimeEvent<T extends SupportedRuntimeEvents>
 		this.$type = type;
 	}
 	
-	public add(handler: SupportedRuntimeEventsBlueprint<T>) : this
+	public addListener(handler: RuntimeEventTypeCallback<T>) : void 
 	{
-		browser.runtime[this.$type].addListener(handler as () => void);
-		return this;
+		this.$type.addListener(handler);
 	}
 	
-	public remove(listener: SupportedRuntimeEventsBlueprint<T>) : this
+	public removeListener(handler: RuntimeEventTypeCallback<T>) : void 
 	{
-		browser.runtime[this.$type].removeListener(listener as () => void);
-		return this;
+		this.$type.removeListener(handler);
 	}
-}
-
-
-/**
- * Private class RuntimeEventTypes
- */
-interface RuntimeEventTypes
-{
-	"onStartup": () => void,
-	"onInstalled": (details: InstallationDetails) => void,
-	"onSuspend": () => void,
-	"onSuspendCanceled": () => void,
-	"onUpdateAvailable": (details: UpdateDetails) => void
 }

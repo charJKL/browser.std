@@ -1,7 +1,7 @@
 import { Api, BrowserNativeApiCallError, NetRequestUpdatePacket, RegexOptions, IsRegexSupportedResult } from "src/api/Api";
 import { BrowserApiError } from "src/api/BrowserApiError";
 import { ApiReturn } from "src/api/ApiReturn.type";
-import { ArrayEx, isError } from "src/util";
+import { ArrayEx, isError, isFalse } from "src/util";
 
 
 // #region private type
@@ -82,7 +82,7 @@ export class NetRequestBlock
 		const isRegexpSupportedResult = await Api.declarativeNetRequest.isRegexSupported(regexpOptions);
 		if(isError(BrowserNativeApiCallError, isRegexpSupportedResult)) return isRegexpSupportedResult;
 		
-		const regexpIsNotSupported = (result: IsRegexSupportedResult) : result is Required<IsRegexSupportedResult> => result.isSupported === false; // eslint-disable-line @typescript-eslint/no-unnecessary-boolean-literal-compare -- it's matter of style
+		const regexpIsNotSupported = (result: IsRegexSupportedResult) : result is Required<IsRegexSupportedResult> => isFalse(result.isSupported);
 		if(regexpIsNotSupported(isRegexpSupportedResult)) return new RegexpIsNotSupported(this, "Provided regexp is not supported by browser.", {regexp, reason: isRegexpSupportedResult.reason});
 		return isRegexpSupportedResult.isSupported;
 	}

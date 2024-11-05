@@ -5,3 +5,4 @@ My browser standard library.
 | Native API | browser.std |
 |-|-|
 |browser.runtime|api/backend/AddonLifecycle <br> api/backend/BackendComm|
+|browser.declarativeNetRequest|api/backend/NetRequestBlock|

@@ -14,7 +14,7 @@ type MessageListener<B extends ProtocolBlueprint> = (...args: MessageListenerArg
 type OptionalProtocolBlueprintArgs<B extends ProtocolBlueprint> = ProtocolBlueprintArgs<B> extends [] ? undefined : ProtocolBlueprintArgs<B>;
 
 // errors
-class NoTabsWasFound extends BrowserApiError<"NoTabsWasFound", BackendComm<any>, {url: string}>{ };
+export class NoTabsWasFound extends BrowserApiError<"NoTabsWasFound", BackendComm<any>, {url: string}>{ };
 class SendWasntSuccessfulError extends BrowserApiError<"SendWasntSuccessfulError", BackendComm<any>, {results: unknown[]}>{ };
 class CorruptedPacketDataError extends BrowserApiError<"CorruptedPacketDataError", BackendComm<any>, {packet: Packet}>{ };
 class NoListenerPresent extends BrowserApiError<"NoListenerPresent", BackendComm<any>, {packet: Packet}>{ };
@@ -22,7 +22,7 @@ class NoListenerPresent extends BrowserApiError<"NoListenerPresent", BackendComm
 /**
  * BackendComm
  */
-export class BackendComm<SP extends SupportedProtocol>
+export class BackendComm<SP extends SupportedProtocol = {}> // eslint-disable-line @typescript-eslint/no-empty-object-type -- we want here empty object.
 {
 	private readonly $listeners: Map<Variants<SP>, MessageListener<ProtocolBlueprint>>;
 	

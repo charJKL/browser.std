@@ -1,6 +1,5 @@
-import { Api, BrowserNativeApiCallError, NetRequestUpdatePacket, RegexOptions, IsRegexSupportedResult } from "@src/api/Api";
+import { Api, BrowserNativeApiCallError, NetRequestUpdatePacket, RegexOptions, IsRegexSupportedResult, type ApiReturn } from "@src/api/Api";
 import { BrowserApiError } from "@src/api/BrowserApiError";
-import { ApiReturn } from "@src/api/ApiReturn.type";
 import { ArrayEx, isError, isFalse } from "@src/util";
 
 

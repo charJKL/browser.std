@@ -1,8 +1,7 @@
-import { Api, BrowserNativeApiCallError } from "@src/api/Api";
+import { Api, BrowserNativeApiCallError, type ApiReturn } from "@src/api/Api";
 import { CommProtocol, CorruptedPacketError } from "@src/api/CommProtocol";
 import type { MessageSender, SendResponse, Data, Variants, Packet, ProtocolBlueprint, ProtocolBlueprintArgs, ProtocolBlueprintResponse, SupportedProtocol,  } from "@src/api/CommProtocol";
 import { BrowserApiError } from "@src/api/BrowserApiError";
-import { ApiReturn } from "@src/api/ApiReturn.type";
 import { ArrayEx, safeCast, isError, isNotUndefined, isUndefined, isNotArray } from "@src/util";
 
 type BrowserTab = browser.tabs.Tab;

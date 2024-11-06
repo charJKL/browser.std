@@ -1,4 +1,4 @@
-import { Api } from "src/api/Api";
+import { Api } from "@src/api/Api";
 
 /**
  * AddonLifecycle class

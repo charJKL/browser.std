@@ -1,7 +1,7 @@
-import { CommProtocol, CorruptedPacketError } from "src/api/CommProtocol";
+import { CommProtocol, CorruptedPacketError } from "@src/api/CommProtocol";
 import type { MessageSender, SendResponse, Packet, Data, Variants, ProtocolBlueprint, ProtocolBlueprintArgs, ProtocolBlueprintResponse, SupportedProtocol } from "src/api/CommProtocol";
-import { IComparable, ArrayEx, MultiMap, isError, safeCast, isNotArray } from "src/util";
-import { BrowserApiError } from "src/api/BrowserApiError";
+import { IComparable, ArrayEx, MultiMap, isError, safeCast, isNotArray } from "@src/util";
+import { BrowserApiError } from "@src/api/BrowserApiError";
 
 type AllowListenerBeAsync<T> = Promise<T> | T;
 type MessageListenerArgs<B extends ProtocolBlueprint> = [...ProtocolBlueprintArgs<B>, MessageSender];

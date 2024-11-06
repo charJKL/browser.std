@@ -1,4 +1,4 @@
-import { StdError } from "src/util/StdError";
+import { StdError } from "@src/util/StdError";
 
 export type InstallationDetails = browser.runtime._OnInstalledDetails;
 export type UpdateDetails = browser.runtime._OnUpdateAvailableDetails;

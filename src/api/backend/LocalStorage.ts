@@ -1,5 +1,5 @@
-import { Api, BrowserNativeApiCallError, type ApiReturn } from "src/api/Api";
-import { isError } from "src/util";
+import { Api, BrowserNativeApiCallError, type ApiReturn } from "@src/api/Api";
+import { isError } from "@src/util";
 
 // #region private types
 type StorageBlueprint = { [key: string]: unknown }; // TODO supports only simple type.

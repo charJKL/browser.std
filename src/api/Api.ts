@@ -2,10 +2,19 @@ import { StdError } from "@src/util/StdError";
 
 export type InstallationDetails = browser.runtime._OnInstalledDetails;
 export type UpdateDetails = browser.runtime._OnUpdateAvailableDetails;
+
 export type NetRequestRule = browser.declarativeNetRequest.Rule;
 export type NetRequestUpdatePacket = browser.declarativeNetRequest._UpdateDynamicRulesOptions;
 export type RegexOptions = browser.declarativeNetRequest._IsRegexSupportedRegexOptions;
 export type IsRegexSupportedResult = browser.declarativeNetRequest._IsRegexSupportedReturnResult;
+
+export type MessageSender = browser.runtime.MessageSender;
+export type SendResponse = (response?: unknown) => void;
+
+export type QueryInfo = browser.tabs._QueryQueryInfo;
+export type BrowserTab = browser.tabs.Tab;
+export type SendMessageOptions = browser.tabs._SendMessageOptions;
+
 export type ApiReturn<T0, T1 = never, T2 = never, T3 = never> = Promise<T0 | T1 | T2 | T3>;
 
 // errors:
@@ -51,6 +60,11 @@ export const Api =
 		{ 
 			addListener(cb: (details: UpdateDetails) => void) { browser.runtime.onUpdateAvailable.addListener(cb) },
 			removeListener(cb: (details: UpdateDetails) => void) { browser.runtime.onUpdateAvailable.removeListener(cb) } 
+		},
+		onMessage:
+		{
+			addListener(cb: (message: unknown, sender: MessageSender, sendResponse: SendResponse) => boolean | Promise<unknown>) { browser.runtime.onMessage.addListener(cb) },
+			removeListener(cb: (message: unknown, sender: MessageSender, sendResponse: SendResponse) => boolean | Promise<unknown>) { browser.runtime.onMessage.removeListener(cb) } 
 		}
 	},
 	declarativeNetRequest:
@@ -84,6 +98,17 @@ export const Api =
 			{
 				return browser.storage.local.remove(keys).catch(returnError);
 			}
+		}
+	},
+	tabs:
+	{
+		query(queryInfo: QueryInfo): ApiReturn<BrowserTab[], BrowserNativeApiCallError>
+		{
+			return browser.tabs.query(queryInfo).catch(returnError);
+		},
+		sendMessage(tabId: number, message: unknown, options?: SendMessageOptions): ApiReturn<unknown, BrowserNativeApiCallError>
+		{
+			return browser.tabs.sendMessage(tabId, message, options).catch(returnError);
 		}
 	}
 }

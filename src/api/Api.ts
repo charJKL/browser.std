@@ -10,10 +10,11 @@ export type IsRegexSupportedResult = browser.declarativeNetRequest._IsRegexSuppo
 
 export type MessageSender = browser.runtime.MessageSender;
 export type SendResponse = (response?: unknown) => void;
+export type SendMessageToBackgroundOptions = browser.runtime._SendMessageOptions;
 
 export type QueryInfo = browser.tabs._QueryQueryInfo;
 export type BrowserTab = browser.tabs.Tab;
-export type SendMessageOptions = browser.tabs._SendMessageOptions;
+export type SendMessageToTabOptions = browser.tabs._SendMessageOptions;
 
 export type ApiReturn<T0, T1 = never, T2 = never, T3 = never> = Promise<T0 | T1 | T2 | T3>;
 
@@ -65,6 +66,10 @@ export const Api =
 		{
 			addListener(cb: (message: unknown, sender: MessageSender, sendResponse: SendResponse) => boolean | Promise<unknown>) { browser.runtime.onMessage.addListener(cb) },
 			removeListener(cb: (message: unknown, sender: MessageSender, sendResponse: SendResponse) => boolean | Promise<unknown>) { browser.runtime.onMessage.removeListener(cb) } 
+		},
+		sendMessage(message: unknown, options?: SendMessageToBackgroundOptions ) : ApiReturn<unknown, BrowserNativeApiCallError>
+		{
+			return browser.runtime.sendMessage(message, options).catch(returnError);
 		}
 	},
 	declarativeNetRequest:
@@ -106,7 +111,7 @@ export const Api =
 		{
 			return browser.tabs.query(queryInfo).catch(returnError);
 		},
-		sendMessage(tabId: number, message: unknown, options?: SendMessageOptions): ApiReturn<unknown, BrowserNativeApiCallError>
+		sendMessage(tabId: number, message: unknown, options?: SendMessageToTabOptions): ApiReturn<unknown, BrowserNativeApiCallError>
 		{
 			return browser.tabs.sendMessage(tabId, message, options).catch(returnError);
 		}

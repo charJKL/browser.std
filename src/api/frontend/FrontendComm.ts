@@ -1,3 +1,4 @@
+import { Api, BrowserNativeApiCallError } from "@src/api/Api";
 import { CommProtocol, CorruptedPacketError } from "@src/api/CommProtocol";
 import type { MessageSender, SendResponse, Packet, Data, Variants, ProtocolBlueprint, ProtocolBlueprintArgs, ProtocolBlueprintResponse, SupportedProtocol } from "src/api/CommProtocol";
 import { IComparable, ArrayEx, MultiMap, isError, safeCast, isNotArray } from "@src/util";
@@ -8,7 +9,6 @@ type MessageListenerArgs<B extends ProtocolBlueprint> = [...ProtocolBlueprintArg
 type MessageListener<B extends ProtocolBlueprint> = (...args: MessageListenerArgs<B>) => AllowListenerBeAsync<void>;
 
 // errors
-export class BrowserRuntimeApiCallError extends BrowserApiError<"BrowserRuntimeApiCallError", FrontendComm<any>, {packet: Packet}>{ } 
 export class CorruptedPacketDataError extends BrowserApiError<"CorruptedPacketDataError", FrontendComm<any>, {packet: Packet}>{ };
 export class NoListenerPresent extends BrowserApiError<"NoListenerPresent", FrontendComm<any>, {packet: Packet}>{ };
 export class CommError extends BrowserApiError<"CommError", FrontendComm<any>, {packet: Packet, response: unknown}> {};
@@ -22,7 +22,7 @@ export class FrontendComm<SP extends SupportedProtocol>
 	
 	constructor()
 	{
-		browser.runtime.onMessage.addListener(this.dispatchMessage.bind(this));
+		Api.runtime.onMessage.addListener(this.dispatchMessage.bind(this));
 		this.$listeners = new MultiMap();
 	}
 	
@@ -34,10 +34,9 @@ export class FrontendComm<SP extends SupportedProtocol>
 	public async sendMessage<V extends Variants<SP>>(variant: V, ...data: ProtocolBlueprintArgs<SP[V]>) : Promise<ProtocolBlueprintResponse<SP[V]> | CommError>
 	{
 		console.log("FrontendComm.sendMessage()", "variant=", variant, "data=", data);
-		const returnError = (reason: unknown) => new BrowserRuntimeApiCallError(this, "Internal browser call `runtime.sendMessage()` throw error.", {packet}, reason);
 		const packet = CommProtocol.Pack(variant, data);
-		const response = await browser.runtime.sendMessage(packet).catch(returnError) as unknown; // TODO remove casting
-		if(isError(BrowserRuntimeApiCallError, response)) return new CommError(this, "Unknow error occur during communication with background script.", {packet, response}, response);
+		const response = await Api.runtime.sendMessage(packet);
+		if(isError(BrowserNativeApiCallError, response)) return new CommError(this, "Unknow error occur during communication with background script.", {packet, response}, response);
 		const result = CommProtocol.ValidatePacket(response);
 		if(isError(CorruptedPacketError, result)) return new CommError(this, "Response packet is corrupted.", {packet, response}, result);
 		return result.data;

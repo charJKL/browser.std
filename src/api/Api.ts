@@ -6,6 +6,7 @@ export type NetRequestRule = browser.declarativeNetRequest.Rule;
 export type NetRequestUpdatePacket = browser.declarativeNetRequest._UpdateDynamicRulesOptions;
 export type RegexOptions = browser.declarativeNetRequest._IsRegexSupportedRegexOptions;
 export type IsRegexSupportedResult = browser.declarativeNetRequest._IsRegexSupportedReturnResult;
+export type ApiReturn<T0, T1 = never, T2 = never, T3 = never> = Promise<T0 | T1 | T2 | T3>;
 
 // errors:
 export class BrowserNativeApiCallError extends StdError<"BrowserNativeApiCallError", object> { };
@@ -14,8 +15,6 @@ function returnError(reason: unknown) : BrowserNativeApiCallError
 {
 	return new BrowserNativeApiCallError("Browser native method call throw error.", {}, reason);
 }
-
-export type ApiReturn<T0, T1 = never, T2 = never, T3 = never> = Promise<T0 | T1 | T2 | T3>;
 
 /**
  * Wrapper class around all native Api call.
@@ -68,6 +67,23 @@ export const Api =
 		{
 			return browser.declarativeNetRequest.isRegexSupported(regexpOption).catch(returnError);
 		}
+	},
+	storage:
+	{
+		local:
+		{
+			get(keys: null | string | string[] | { [key: string]: unknown; }): ApiReturn<{[key: string]: unknown}, BrowserNativeApiCallError>
+			{
+				return browser.storage.local.get(keys).catch(returnError);
+			},
+			set(items: { [key: string]: unknown;}): ApiReturn<void, BrowserNativeApiCallError>
+			{
+				return browser.storage.local.set(items).catch(returnError);
+			},
+			remove(keys: string | string[]) : ApiReturn<void, BrowserNativeApiCallError>
+			{
+				return browser.storage.local.remove(keys).catch(returnError);
+			}
+		}
 	}
 }
-

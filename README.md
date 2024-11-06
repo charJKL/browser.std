@@ -13,4 +13,4 @@ Library doesn't use `exceptions` and `try{ ... } catch{ ... }` syntax. All code 
 |browser.runtime|api/backend/AddonLifecycle <br> api/backend/BackendComm|
 |browser.declarativeNetRequest|api/backend/NetRequestBlock|
 |browser.storage.local|api/backend/LocalStorage|
-
+|browser.tabs|api/backend/BackendComm|

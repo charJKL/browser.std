@@ -3,19 +3,20 @@
 	{
 		"outDir": "dist",
 		"target": "ES2022",
-		"module": "ESNext",
+		"module": "NodeNext",
+		"esModuleInterop": true,
+		
+		"strict": true,
+		"noEmitOnError": true,
+		"declaration": true,
 		
 		"paths":
 		{
 			"@src/*": ["./src/*"]
-		},
-		
-		"strict": true,
-		"noEmitOnError": true,
-		"declaration": true
+		}
 	},
 	"include":
 	[
-		"src/*"
+		"src/**/*"
 	]
 }

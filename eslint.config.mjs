@@ -8,7 +8,7 @@ export default tseslint.config(
 	eslint.configs.recommended,
 	...tseslint.configs.strictTypeChecked,
 	{
-		files: ['**/*.{ts,tsx,mts,cts}'],
+		files: ['**/*.{test.ts,ts,tsx,mts,cts}'],
 		rules: {
 			'no-undef': 'off',
 		},

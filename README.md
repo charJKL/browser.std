@@ -12,3 +12,5 @@ Library doesn't use exceptions and `try{ ... } catch{ ... }` syntax. All code wh
 |-|-|
 |browser.runtime|api/backend/AddonLifecycle <br> api/backend/BackendComm|
 |browser.declarativeNetRequest|api/backend/NetRequestBlock|
+|browser.storage.local|api/backend/LocalStorage|
+

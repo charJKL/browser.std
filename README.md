@@ -10,7 +10,10 @@ Library doesn't use `exceptions` and `try{ ... } catch{ ... }` syntax. All code 
 ## Native browser API to `brwoser.std` mapping.
 | Native API | browser.std |
 |-|-|
-|browser.runtime|api/backend/AddonLifecycle <br> api/backend/BackendComm <br> api/frontend/FrontendComm|
-|browser.declarativeNetRequest|api/backend/NetRequestBlock|
-|browser.storage.local|api/backend/LocalStorage|
-|browser.tabs|api/backend/BackendComm|
+|browser.runtime|[api/backend/AddonLifecycle](src/api/backend/AddonLifecycle.ts) <br> [api/backend/BackendComm](src/api/backend/BackendComm.ts) <br> [api/frontend/FrontendComm](src/api/frontend/FrontendComm.ts)|
+|browser.declarativeNetRequest|[api/backend/NetRequestBlock](src/api/backend/NetRequestBlock.ts)|
+|browser.storage.local|[api/backend/LocalStorage](src/api/backend/LocalStorage.ts)|
+|browser.tabs|[api/backend/BackendComm](src/api/backend/BackendComm.ts)|
+
+
+

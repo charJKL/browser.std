@@ -1,25 +1,30 @@
 import { StdError } from "@src/util";
 
-export type MessageSender = browser.runtime.MessageSender;
-export type SendResponse = (response?: unknown) => void;
-export type Variants<L> = keyof L & string;
-export type Data = { [key: string]: Data } | Array<Data> | string | boolean | number;
+/**
+ * Types used to define supported communication messages, it's params and results.
+ */
+export type Data = { [key: string]: Data } | Array<Data> | string | number | boolean;
 export type Packet = { variant: string, data: Data };
 
-export type ProtocolVariant = string;
-export type ProtocolBlueprint = { args: Array<Data>, response: Data };
-export type ProtocolBlueprintArgs<B extends ProtocolBlueprint> = B["args"];
-export type ProtocolBlueprintResponse<B extends ProtocolBlueprint> = B["response"];
-export type SupportedProtocol = { [variant: ProtocolVariant]: ProtocolBlueprint }
+type ProtocolVariant = string;
+export type ProtocolBlueprint = { direction: "toBackend" | "toFrontend", args: Data[], result: Data };
+export type ProtocolDesc = { [variant: ProtocolVariant] : ProtocolBlueprint };
 
-export type AddonScriptApiMethod<Args extends ProtocolBlueprint["args"], Response extends ProtocolBlueprint["response"]> = { args: Args, response: Response };
-export type AddonScriptApiNotification<Args extends ProtocolBlueprint["args"]> = { args: Args };
+// helper types which are used to build `ProtolDesc`
+type MessageProtocolDesc = (...args: Data[]) => Data; // TODO here must be any, becouse of shorcoming of TS, there is any solution for this?
+export type MessageToBackend<D extends MessageProtocolDesc> = { direction: "toBackend", args: Parameters<D>, result: ReturnType<D> };
+export type MessageToFrontend<D extends MessageProtocolDesc> = { direction: "toFrontend", args: Parameters<D>, result: ReturnType<D> };
+
+// helper types which filters messages by direction
+type Values<T extends { [key: string]: unknown }> = T[keyof T] & string;
+export type ToBackendOnly<D extends ProtocolDesc> = Values<{ [key in keyof D]: D[key]["direction"] extends "toBackend" ? key : never }>;
+export type ToFrontendOnly<D extends ProtocolDesc> = Values<{ [key in keyof D]: D[key]["direction"] extends "toFrontend" ? key : never }>;
 
 // errors 
 export class CorruptedPacketError extends StdError<"CorruptedPacketError", {payload: unknown}>{ };
 
 /**
- * 
+ * CommProtocol
  */
 export abstract class CommProtocol // eslint-disable-line @typescript-eslint/no-extraneous-class -- it's matter of style, CommProtocol groups messages utils methods.
 {

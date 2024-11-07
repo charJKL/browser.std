@@ -2,6 +2,7 @@ export { ArrayEx } from "@src/util/ex/ArrayEx";
 
 export { hasProp } from "@src/util/func/hasProp";
 export { isArray, isNotArray } from "@src/util/func/isArray";
+export { isEmpty, isNotEmpty } from "@src/util/func/isEmpty";
 export { isError } from "@src/util/func/isError";
 export { isFunction } from "@src/util/func/isFunction";
 export { isNull, isNotNull } from "@src/util/func/isNull";

@@ -6,6 +6,7 @@ export { isEmpty, isNotEmpty } from "@src/util/func/isEmpty";
 export { isError } from "@src/util/func/isError";
 export { isFunction } from "@src/util/func/isFunction";
 export { isNull, isNotNull } from "@src/util/func/isNull";
+export { isNumber, isNotNumber } from "@src/util/func/isNumber";
 export { isObject, isNotObject } from "@src/util/func/isObject";
 export { isString, isNotString } from "@src/util/func/isString";
 export { isSymbol, isNotSymbol } from "@src/util/func/isSymbol";

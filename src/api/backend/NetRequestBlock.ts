@@ -1,6 +1,6 @@
 import { Api, BrowserNativeApiCallError, NetRequestUpdatePacket, RegexOptions, IsRegexSupportedResult, type ApiReturn } from "@src/api/Api";
 import { BrowserApiError } from "@src/api/BrowserApiError";
-import { ArrayEx, isError, isFalse } from "@src/util";
+import { ArrayEx, isError, isFalse, isUndefined } from "@src/util";
 
 
 // #region private type
@@ -11,6 +11,7 @@ type NetRequestRuleAction = browser.declarativeNetRequest._RuleAction;
 // #region public types
 export type NetRequestRule = browser.declarativeNetRequest.Rule;
 export type NetRequestRulePart = { regexp: string };
+export type NetRequestRuleChange = { id: number, regexp: string };
 // #endregion
 
 
@@ -18,6 +19,7 @@ export type NetRequestRulePart = { regexp: string };
 abstract class NetRequestBlockError<ID extends string, I extends object> extends BrowserApiError<ID, NetRequestBlock, I>{ };
 export class GetRuleUniqueIdError extends NetRequestBlockError<"GetRuleUniqueIdError", object> { };
 export class RegexpIsNotSupported extends NetRequestBlockError<"RegexpIsNotSupported", {regexp: string, reason: string}>{ };
+export class RuleNotFound extends NetRequestBlockError<"RuleNotFound", {rules: NetRequestRule[], id: number}> { };
 // #endregion
 
 /**
@@ -46,10 +48,10 @@ export class NetRequestBlock
 		if(isError(BrowserNativeApiCallError, isRegexpValid)) return isRegexpValid;
 		if(isError(RegexpIsNotSupported, isRegexpValid)) return isRegexpValid;
 		
+		// TODO check if limit of rules are exceeded.
+		
 		const uniqueId = await this.getRuleUniqueId();
 		if(isError(GetRuleUniqueIdError, uniqueId)) return uniqueId;
-		
-		// TODO check if limit of rules are exceeded.
 		
 		// build netRequestRule:
 		const regexFilter = rule.regexp;
@@ -65,14 +67,35 @@ export class NetRequestBlock
 		return netRequestRule;
 	}
 	
-	public async updateRule(): ApiReturn<void>
+	public async updateRule(change: NetRequestRuleChange): ApiReturn<NetRequestRule, BrowserNativeApiCallError, RuleNotFound, RegexpIsNotSupported>
 	{
-		// TODO
+		const rule = await this.getRule(change.id);
+		if(isError(BrowserNativeApiCallError, rule)) return rule;
+		if(isError(RuleNotFound, rule)) return rule;
+		
+		const isRegexpValid = await this.isRegexpSupported(change.regexp);
+		if(isError(BrowserNativeApiCallError, isRegexpValid)) return isRegexpValid;
+		if(isError(RegexpIsNotSupported, isRegexpValid)) return isRegexpValid;
+		
+		// make change:
+		rule.condition.regexFilter = change.regexp;
+	
+		const packet : NetRequestUpdatePacket = { addRules: [rule] }
+		const result = await Api.declarativeNetRequest.updateDynamicRules(packet);
+		if(isError(BrowserNativeApiCallError, result)) return result;
+		return rule;
 	}
 	
-	public async deleteRule(): ApiReturn<void>
+	public async deleteRule(ruleId: number): ApiReturn<boolean, BrowserNativeApiCallError, RuleNotFound>
 	{
-		// TODO
+		const rule = await this.getRule(ruleId);
+		if(isError(BrowserNativeApiCallError, rule)) return rule;
+		if(isError(RuleNotFound, rule)) return rule;
+		
+		const packet : NetRequestUpdatePacket = { removeRuleIds: [ruleId] }
+		const result = await Api.declarativeNetRequest.updateDynamicRules(packet);
+		if(isError(BrowserNativeApiCallError, result)) return result;
+		return true;
 	}
 	
 	private async isRegexpSupported(regexp: string) : ApiReturn<boolean | BrowserNativeApiCallError | RegexpIsNotSupported>
@@ -97,5 +120,15 @@ export class NetRequestBlock
 			if(rulesIds[i] !== i + 1) return i + 1;
 		}
 		return rulesIds.length + 1;
+	}
+	
+	private async getRule(id: number) : ApiReturn<NetRequestRule, BrowserNativeApiCallError, RuleNotFound>
+	{
+		const rules = await this.getRules();
+		if(isError(BrowserNativeApiCallError, rules)) return rules;
+		
+		const rule = rules.find(rule => rule.id === id);
+		if(isUndefined(rule)) return new RuleNotFound(this, "Rule was not found", { rules, id });
+		return rule;
 	}
 }

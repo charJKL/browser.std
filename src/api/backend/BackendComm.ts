@@ -1,62 +1,50 @@
-import { Api, BrowserNativeApiCallError, type ApiReturn } from "@src/api/Api";
-import { CommProtocol, CorruptedPacketError } from "@src/api/CommProtocol";
-import type { MessageSender, SendResponse, Data, Variants, Packet, ProtocolBlueprint, ProtocolBlueprintArgs, ProtocolBlueprintResponse, SupportedProtocol,  } from "@src/api/CommProtocol";
+import { Api, MessageSender, SendResponse, BrowserNativeApiCallError, ApiReturn, BrowserTab } from "@src/api/Api";
+import { CommProtocol, CorruptedPacketError, Data, Packet, ProtocolBlueprint, ProtocolDesc, ToBackendOnly, ToFrontendOnly } from "@src/api/CommProtocol";
 import { BrowserApiError } from "@src/api/BrowserApiError";
-import { ArrayEx, safeCast, isError, isNotUndefined, isUndefined, isNotArray } from "@src/util";
+import { ArrayEx, safeCast, isError, isEmpty, isNotArray, isUndefined, isNotUndefined } from "@src/util";
 
-type BrowserTab = browser.tabs.Tab;
+type Variants<T extends {[key: string] : unknown}> = keyof T & string;
+type AllowBeAsync<T> = Promise<T> | T;
+type MessageListener<B extends ProtocolBlueprint> = (...args: [...B["args"], sender: MessageSender]) => AllowBeAsync<B["result"]>;
 type ValidBrowserTab = BrowserTab & { id: number };
-type AllowListenerBeAsync<T> = Promise<T> | T;
-type MessageListenerArgs<B extends ProtocolBlueprint> = [...ProtocolBlueprintArgs<B>, sender: MessageSender];
-type MessageListenerResponse<B extends ProtocolBlueprint> = AllowListenerBeAsync<ProtocolBlueprintResponse<B>>;
-type MessageListener<B extends ProtocolBlueprint> = (...args: MessageListenerArgs<B>) => MessageListenerResponse<B>;
-type OptionalProtocolBlueprintArgs<B extends ProtocolBlueprint> = ProtocolBlueprintArgs<B> extends [] ? undefined : ProtocolBlueprintArgs<B>;
 
-// errors
-export class NoTabsWasFound extends BrowserApiError<"NoTabsWasFound", BackendComm<any>, {url: string}>{ };
-class SendWasntSuccessfulError extends BrowserApiError<"SendWasntSuccessfulError", BackendComm<any>, {results: unknown[]}>{ };
-class CorruptedPacketDataError extends BrowserApiError<"CorruptedPacketDataError", BackendComm<any>, {packet: Packet}>{ };
-class NoListenerPresent extends BrowserApiError<"NoListenerPresent", BackendComm<any>, {packet: Packet}>{ };
+// errors:
+abstract class BackendCommError<ID extends string, I extends object> extends BrowserApiError<ID, BackendComm<any>, I> { };
+export class NoTabsWasFound extends BackendCommError<"NoTabsWasFound", {url: string}>{ };
+export class SendWasntSuccessfulError extends BackendCommError<"SendWasntSuccessfulError", {results: unknown[]}>{ };
+export class CorruptedPacketDataError extends BackendCommError<"CorruptedPacketDataError", {packet: Packet}>{ };
+export class NoListenerPresent extends BackendCommError<"NoListenerPresent", {packet: Packet}>{ };
+
 
 /**
  * BackendComm
  */
-export class BackendComm<SP extends SupportedProtocol = {}> // eslint-disable-line @typescript-eslint/no-empty-object-type -- we want here empty object.
+export class BackendComm<D extends ProtocolDesc>
 {
-	private readonly $listeners: Map<Variants<SP>, MessageListener<ProtocolBlueprint>>;
+	private readonly $listeners: Map<Variants<D>, MessageListener<ProtocolBlueprint>>;
 	
-	constructor()
+	public constructor()
 	{
-		Api.runtime.onMessage.addListener(this.dispatchMessage.bind(this));
 		this.$listeners = new Map();
+		Api.runtime.onMessage.addListener(this.dispatchMessage.bind(this));
 	}
 	
-	public addMessageListener<V extends Variants<SP>>(variant: V, listener: MessageListener<SP[V]>) : void
+	public addMessageListener<V extends ToBackendOnly<D>>(variant: V, listener: MessageListener<D[V]> ): void
 	{
-		this.$listeners.set(variant, safeCast<MessageListener<SP[V]>, MessageListener<ProtocolBlueprint>>(listener));
+		this.$listeners.set(variant, safeCast<MessageListener<D[V]>, MessageListener<ProtocolBlueprint>>(listener));
 	}
 	
-	public async sendMessage<V extends Variants<SP>>(variant: V, url: string, data: OptionalProtocolBlueprintArgs<SP[V]>) : ApiReturn<boolean, BrowserNativeApiCallError, NoTabsWasFound, SendWasntSuccessfulError>
+	public async sendMessage<V extends ToFrontendOnly<D>>(variant: V, url: string, ...data: D[V]["args"]) : ApiReturn<boolean, NoTabsWasFound, SendWasntSuccessfulError, BrowserNativeApiCallError>
 	{
 		console.log("BackendComm.sendMessage()", "variant=", variant, "url=", url, "data=", data); // TODO debug only
 		const tabs = await Api.tabs.query({url});
 		if(isError(BrowserNativeApiCallError, tabs)) return tabs;
-		if(ArrayEx.IsEmpty(tabs)) return new NoTabsWasFound(this, "Wanted url is not opened in any tab.", {url});
+		if(isEmpty(tabs)) return new NoTabsWasFound(this, "Wanted url is not opened in any tab.", {url});
 		const validTabs = tabs.filter((tab: BrowserTab) : tab is ValidBrowserTab => isNotUndefined(tab.id));
 		const results = await ArrayEx.AsyncMap(validTabs, (tab) => this.sendMessageToTab.call(this, tab, variant, data));
 		const wasErrorOccuredDuringDispatchingNotifications = (result: PromiseSettledResult<"Sended" | BrowserNativeApiCallError>) => result.status === "fulfilled" ? result.value instanceof BrowserNativeApiCallError : true;
 		if(results.find(wasErrorOccuredDuringDispatchingNotifications)) return new SendWasntSuccessfulError(this, "Notifiaction wasnt send successful to all tabs", {results});
 		return true;
-	}
-	
-	// TODO should response from content script be discarded?
-	public async sendMessageToTab(tab: ValidBrowserTab, variant: Variants<SP>, data?: Data) : Promise<"Sended" | BrowserNativeApiCallError>
-	{
-		const assuredData = isUndefined(data) ? [] : data;
-		const packet = CommProtocol.Pack(variant, assuredData);
-		const result = await Api.tabs.sendMessage(tab.id, packet); // result is discarded 
-		if(isError(BrowserNativeApiCallError, result)) return result;
-		return "Sended";
 	}
 	
 	private dispatchMessage(payload: unknown, sender: MessageSender, sendResponse: SendResponse) : boolean
@@ -73,6 +61,16 @@ export class BackendComm<SP extends SupportedProtocol = {}> // eslint-disable-li
 		return true;
 	}
 	
+	public async sendMessageToTab(tab: ValidBrowserTab, variant: ToFrontendOnly<D>, data?: Data[]) : Promise<"Sended" | BrowserNativeApiCallError>
+	{
+		// TODO should response from content script be discarded?
+		const assuredData = isUndefined(data) ? [] : data;
+		const packet = CommProtocol.Pack(variant, assuredData);
+		const result = await Api.tabs.sendMessage(tab.id, packet); // result is discarded 
+		if(isError(BrowserNativeApiCallError, result)) return result;
+		return "Sended";
+	}
+	
 	private async dispatchMessageToListener(payload: unknown, sender: MessageSender) : Promise<{packet: Packet, result: Data} | CorruptedPacketError | CorruptedPacketDataError | NoListenerPresent>
 	{
 		const packet = CommProtocol.ValidatePacket(payload);
@@ -82,5 +80,5 @@ export class BackendComm<SP extends SupportedProtocol = {}> // eslint-disable-li
 		if(isUndefined(listener)) return new NoListenerPresent(this, "There isn't any listener for this message", {packet});
 		const result = await listener(...packet.data, sender);
 		return {packet, result};
-	}
+	}	
 }

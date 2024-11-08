@@ -15,7 +15,6 @@ export class SendWasntSuccessfulError extends BackendCommError<"SendWasntSuccess
 export class CorruptedPacketDataError extends BackendCommError<"CorruptedPacketDataError", {packet: Packet}>{ };
 export class NoListenerPresent extends BackendCommError<"NoListenerPresent", {packet: Packet}>{ };
 
-
 /**
  * BackendComm
  */
@@ -26,7 +25,7 @@ export class BackendComm<D extends ProtocolDesc>
 	public constructor()
 	{
 		this.$listeners = new Map();
-		Api.runtime.onMessage.addListener(this.dispatchMessage.bind(this));
+		Api.runtime.onMessage.addListener(this.invokeAssignedListeners.bind(this));
 	}
 	
 	public addMessageListener<V extends ToBackendOnly<D>>(variant: V, listener: MessageListener<D[V]> ): void
@@ -47,11 +46,11 @@ export class BackendComm<D extends ProtocolDesc>
 		return true;
 	}
 	
-	private dispatchMessage(payload: unknown, sender: MessageSender, sendResponse: SendResponse) : boolean
+	private invokeAssignedListeners(payload: unknown, sender: MessageSender, sendResponse: SendResponse) : boolean
 	{
 		// TODO being silent about error is good choice? Maybe some abstract error should be returned?
 		console.log("BackendComm.dispatchMessage()", "payload=", payload, "sender=", sender); // TODO for debug only
-		void this.dispatchMessageToListener(payload, sender).then((result) => {
+		void this.asyncInvokeAssignedListener(payload, sender).then((result) => {
 			if(isError(CorruptedPacketError, result)) return;
 			if(isError(CorruptedPacketDataError, result)) return;
 			if(isError(NoListenerPresent, result)) return;
@@ -71,7 +70,7 @@ export class BackendComm<D extends ProtocolDesc>
 		return "Sended";
 	}
 	
-	private async dispatchMessageToListener(payload: unknown, sender: MessageSender) : Promise<{packet: Packet, result: Data} | CorruptedPacketError | CorruptedPacketDataError | NoListenerPresent>
+	private async asyncInvokeAssignedListener(payload: unknown, sender: MessageSender) : Promise<{packet: Packet, result: Data} | CorruptedPacketError | CorruptedPacketDataError | NoListenerPresent>
 	{
 		const packet = CommProtocol.ValidatePacket(payload);
 		if(isError(CorruptedPacketError, packet)) return packet;

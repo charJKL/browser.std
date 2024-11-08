@@ -1,68 +1,73 @@
-import { Api, BrowserNativeApiCallError } from "@src/api/Api";
-import { CommProtocol, CorruptedPacketError } from "@src/api/CommProtocol";
-import type { MessageSender, SendResponse, Packet, Data, Variants, ProtocolBlueprint, ProtocolBlueprintArgs, ProtocolBlueprintResponse, SupportedProtocol } from "@src/api/CommProtocol";
-import { IComparable, ArrayEx, MultiMap, isError, safeCast, isNotArray } from "@src/util";
+import { Api, ApiReturn, MessageSender, BrowserNativeApiCallError } from "@src/api/Api";
+import { Data, Packet, CommProtocol, CorruptedPacketError, ProtocolBlueprint, ProtocolDesc, ToBackendOnly, ToFrontendOnly } from "@src/api/CommProtocol";
 import { BrowserApiError } from "@src/api/BrowserApiError";
+import { ArrayEx, MultiMap, IComparable, safeCast, isError, isNotArray, isEmpty } from "@src/util";
 
-type AllowListenerBeAsync<T> = Promise<T> | T;
-type MessageListenerArgs<B extends ProtocolBlueprint> = [...ProtocolBlueprintArgs<B>, MessageSender];
-type MessageListener<B extends ProtocolBlueprint> = (...args: MessageListenerArgs<B>) => AllowListenerBeAsync<void>;
+type Variants<T extends {[key: string] : unknown}> = keyof T & string;
+type AllowBeAsync<T> = Promise<T> | T;
+type MessageListener<B extends ProtocolBlueprint> = (...args: [...B["args"], sender: MessageSender]) => AllowBeAsync<B["result"]>;
 
-// errors
-export class CorruptedPacketDataError extends BrowserApiError<"CorruptedPacketDataError", FrontendComm<any>, {packet: Packet}>{ };
-export class NoListenerPresent extends BrowserApiError<"NoListenerPresent", FrontendComm<any>, {packet: Packet}>{ };
-export class CommError extends BrowserApiError<"CommError", FrontendComm<any>, {packet: Packet, response: unknown}> {};
+// errors:
+abstract class FrontendCommError<ID extends string, I extends object> extends BrowserApiError<ID, FrontendComm<any>, I> { };
+class CorruptedPacketDataError extends FrontendCommError<"CorruptedPacketDataError", {packet: Packet}>{ };
+class NoListenerPresent extends FrontendCommError<"NoListenerPresent", {packet: Packet}>{ };
+class ListenerThrowError extends FrontendCommError<"ListenerThrowError", {packet: Packet}> { };
 
-/**
- * 
- */
-export class FrontendComm<SP extends SupportedProtocol>
+export class FrontendComm<D extends ProtocolDesc>
 {
-	private readonly $listeners: MultiMap<Variants<SP>, NotificationListenerRecord>;
+	private readonly $listeners: MultiMap<Variants<D>, NotificationListenerRecord>;
 	
-	constructor()
+	public constructor()
 	{
-		Api.runtime.onMessage.addListener(this.dispatchMessage.bind(this));
 		this.$listeners = new MultiMap();
+		Api.runtime.onMessage.addListener(this.invokeAssignedListeners.bind(this));
 	}
 	
-	public addMessageListener<V extends Variants<SP>>(variant: V, listener: MessageListener<SP[V]>) : void
+	public addMessageListener<V extends ToFrontendOnly<D>>(variant: V, listener: MessageListener<D[V]> ) : void
 	{
-		this.$listeners.set(variant, new NotificationListenerRecord(safeCast<MessageListener<SP[V]>, MessageListener<ProtocolBlueprint>>(listener)));
+		this.$listeners.set(variant, new NotificationListenerRecord(safeCast<MessageListener<D[V]>, MessageListener<ProtocolBlueprint>>(listener)));
 	}
 	
-	public async sendMessage<V extends Variants<SP>>(variant: V, ...data: ProtocolBlueprintArgs<SP[V]>) : Promise<ProtocolBlueprintResponse<SP[V]> | CommError>
+	public async sendMessage<V extends ToBackendOnly<D>>(variant: V, ...data: D[V]["args"]) : ApiReturn<D[V]["result"], BrowserNativeApiCallError, CorruptedPacketError>
 	{
+		// TODO should function return `BrowserNativeApiCallError` and `CorruptedPacketError`
 		console.log("FrontendComm.sendMessage()", "variant=", variant, "data=", data);
 		const packet = CommProtocol.Pack(variant, data);
 		const response = await Api.runtime.sendMessage(packet);
-		if(isError(BrowserNativeApiCallError, response)) return new CommError(this, "Unknow error occur during communication with background script.", {packet, response}, response);
+		if(isError(BrowserNativeApiCallError, response)) return response;
 		const result = CommProtocol.ValidatePacket(response);
-		if(isError(CorruptedPacketError, result)) return new CommError(this, "Response packet is corrupted.", {packet, response}, result);
+		if(isError(CorruptedPacketError, result)) return result;
 		return result.data;
 	}
 	
-	private dispatchMessage(payload: unknown, sender: MessageSender) : boolean
+	private invokeAssignedListeners(payload: unknown, sender: MessageSender) : boolean
 	{
-		console.log("FrontendComm.dispatchMessage()", "payload=", payload, "sender=", sender); // TODO for debug only
-		void this.dispatchMessageToListener(payload, sender).then((result) => {
-			if(isError(CorruptedPacketError, result)) return; // TODO this should be logged somewhere.
-			if(isError(CorruptedPacketDataError, result)) return;
-			if(isError(NoListenerPresent, result)) return;
+		console.log("FrontendComm.invokeAssignedListeners()", "payload=", payload, "sender=", sender); // TODO for debug only
+		void this.asyncInvokeAssignedListeners(payload, sender).then((results) => {
+			if(isError(CorruptedPacketError, results)) return; // TODO this should be logged somewhere.
+			if(isError(CorruptedPacketDataError, results)) return;
+			if(isError(NoListenerPresent, results)) return;
 			// we don't support send response back.
 		});
 		return false;
 	}
 	
-	private async dispatchMessageToListener(payload: unknown, sender: MessageSender) : Promise<"Send" | CorruptedPacketError | CorruptedPacketDataError | NoListenerPresent>
+	private async asyncInvokeAssignedListeners(payload: unknown, sender: MessageSender) : Promise<Array<Data | ListenerThrowError> | CorruptedPacketError | CorruptedPacketDataError | NoListenerPresent>
 	{
 		const packet = CommProtocol.ValidatePacket(payload);
 		if(isError(CorruptedPacketError, packet)) return packet;
-		if(isNotArray(packet.data)) return new CorruptedPacketDataError(this, "Data sended from background script is corrupted.", {packet});
-		const listeners = this.$listeners.get(packet.variant);
-		if(ArrayEx.IsEmpty(listeners)) return new NoListenerPresent(this, "There isn't any listener for this message", {packet});
-		listeners.forEach(async record => {await record.listener.call(undefined, ...safeCast<Data, Array<Data>>(packet.data), sender)});
-		return "Send";
+		if(isNotArray(packet.data)) return new CorruptedPacketDataError(this, "Data sended from background script is corrupted", {packet});
+		
+		const records = this.$listeners.get(packet.variant);
+		if(isEmpty(records)) return new NoListenerPresent(this, "There isn't any listener for this message.", {packet});
+		
+		const args = packet.data;
+		const listeners = records.map((records) => records.listener);
+		const settledResults = await ArrayEx.AsyncMap(listeners, (listener) => listener(...args, sender));
+		
+		const resolveValueFromSettledPromise = (result: PromiseSettledResult<Data>) => result.status === "fulfilled" ? result.value : new ListenerThrowError(this, "Listener for this message throw error.", {packet}, result.reason);
+		const results = settledResults.map(resolveValueFromSettledPromise);
+		return results;
 	}
 }
 

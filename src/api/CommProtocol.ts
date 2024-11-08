@@ -10,12 +10,12 @@ type ProtocolVariant = string;
 export type ProtocolBlueprint = { direction: "toBackend" | "toFrontend", args: Data[], result: Data };
 export type ProtocolDesc = { [variant: ProtocolVariant] : ProtocolBlueprint };
 
-// helper types which are used to build `ProtolDesc`
+// helper types which are used to build `ProtolDesc`:
 type MessageProtocolDesc = (...args: Data[]) => Data; // TODO here must be any, becouse of shorcoming of TS, there is any solution for this?
 export type MessageToBackend<D extends MessageProtocolDesc> = { direction: "toBackend", args: Parameters<D>, result: ReturnType<D> };
 export type MessageToFrontend<D extends MessageProtocolDesc> = { direction: "toFrontend", args: Parameters<D>, result: ReturnType<D> };
 
-// helper types which filters messages by direction
+// helper types which filters messages by direction:
 type Values<T extends { [key: string]: unknown }> = T[keyof T] & string;
 export type ToBackendOnly<D extends ProtocolDesc> = Values<{ [key in keyof D]: D[key]["direction"] extends "toBackend" ? key : never }>;
 export type ToFrontendOnly<D extends ProtocolDesc> = Values<{ [key in keyof D]: D[key]["direction"] extends "toFrontend" ? key : never }>;

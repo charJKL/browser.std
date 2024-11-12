@@ -1,7 +1,7 @@
 import { Api, MessageSender, SendResponse, BrowserNativeApiCallError, ApiReturn, BrowserTab } from "@src/api/Api";
 import { CommProtocol, CorruptedPacketError, Data, Packet, ProtocolBlueprint, ProtocolDesc, ToBackendOnly, ToFrontendOnly } from "@src/api/CommProtocol";
 import { BrowserApiError } from "@src/api/BrowserApiError";
-import { safeCast, isError, isEmpty, isNotArray, isUndefined, isNotUndefined } from "@src/util/Func";
+import { safeCast, isError, isEmpty, isNotArray, isUndefined, isNotUndefined, isString } from "@src/util/Func";
 import { ArrayEx } from "@src/util/ex/ArrayEx";
 import { AllowBeAsync, Names, Async } from "@src/util/Helpers";
 
@@ -39,10 +39,13 @@ export class BackendComm<D extends ProtocolDesc>
 		const tabs = await Api.tabs.query({url});
 		if(isError(BrowserNativeApiCallError, tabs)) return tabs;
 		if(isEmpty(tabs)) return new NoTabsWasFound(this, "Wanted url is not opened in any tab.", {url});
+		
 		const validTabs = tabs.filter((tab: BrowserTab) : tab is ValidBrowserTab => isNotUndefined(tab.id));
 		const results = await ArrayEx.AsyncMap(validTabs, (tab) => this.sendMessageToTab.call(this, tab, variant, data));
-		const wasErrorOccuredDuringDispatchingNotifications = (result: PromiseSettledResult<"Sended" | BrowserNativeApiCallError>) => result.status === "fulfilled" ? result.value instanceof BrowserNativeApiCallError : true;
+		
+		const wasErrorOccuredDuringDispatchingNotifications = (result: (BrowserNativeApiCallError | Error | "Sended")) => isString(result);
 		if(results.find(wasErrorOccuredDuringDispatchingNotifications)) return new SendWasntSuccessfulError(this, "Notifiaction wasnt send successful to all tabs", {results});
+		
 		return true;
 	}
 	

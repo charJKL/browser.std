@@ -66,11 +66,14 @@ export class FrontendComm<D extends ProtocolDesc>
 		const listeners = records.map((records) => records.listener);
 		const settledResults = await ArrayEx.AsyncMap(listeners, (listener) => listener(...args, sender));
 		
-		const resolveValueFromSettledPromise = (result: PromiseSettledResult<Data>) => result.status === "fulfilled" ? result.value : new ListenerThrowError(this, "Listener for this message throw error.", {packet}, result.reason);
-		const results = settledResults.map(resolveValueFromSettledPromise);
+		const toError = (error: Error) => new ListenerThrowError(this, "Listener for this message throw error.", {packet}, error);
+		const results = ArrayEx.TransformError(settledResults, toError);
+		
 		return results;
 	}
 }
+
+
 
 /**
  * NotificationListenerRecord

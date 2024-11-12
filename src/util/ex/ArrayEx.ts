@@ -1,3 +1,4 @@
+import { AllowBeAsync } from "@src/util/Helpers";
 
 export class ArrayEx // eslint-disable-line @typescript-eslint/no-extraneous-class -- there is not other way to implement it
 {
@@ -12,7 +13,7 @@ export class ArrayEx // eslint-disable-line @typescript-eslint/no-extraneous-cla
 		return array.sort((a, b) => a - b);
 	}
 	
-	public static AsyncMap<T, V>(array: Array<T>, callbackfn: (value: T, index: number, array: Array<T>) => Promise<V> | V, thisArg?: unknown) : Promise<PromiseSettledResult<V>[]>
+	public static AsyncMap<T, V>(array: Array<T>, callbackfn: (value: T, index: number, array: Array<T>) => AllowBeAsync<V>, thisArg?: unknown) : Promise<PromiseSettledResult<V>[]>
 	{
 		const result = array.map(callbackfn, thisArg);
 		return Promise.allSettled(result);

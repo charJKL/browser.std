@@ -1,10 +1,10 @@
 import { Api, MessageSender, SendResponse, BrowserNativeApiCallError, ApiReturn, BrowserTab } from "@src/api/Api";
 import { CommProtocol, CorruptedPacketError, Data, Packet, ProtocolBlueprint, ProtocolDesc, ToBackendOnly, ToFrontendOnly } from "@src/api/CommProtocol";
 import { BrowserApiError } from "@src/api/BrowserApiError";
-import { ArrayEx, safeCast, isError, isEmpty, isNotArray, isUndefined, isNotUndefined } from "@src/util";
+import { safeCast, isError, isEmpty, isNotArray, isUndefined, isNotUndefined } from "@src/util/Func";
+import { ArrayEx } from "@src/util/ex/ArrayEx";
+import { AllowBeAsync, Names, Async } from "@src/util/Helpers";
 
-type Variants<T extends {[key: string] : unknown}> = keyof T & string;
-type AllowBeAsync<T> = Promise<T> | T;
 type MessageListener<B extends ProtocolBlueprint> = (...args: [...B["args"], sender: MessageSender]) => AllowBeAsync<B["result"]>;
 type ValidBrowserTab = BrowserTab & { id: number };
 
@@ -20,7 +20,7 @@ export class NoListenerPresent extends BackendCommError<"NoListenerPresent", {pa
  */
 export class BackendComm<D extends ProtocolDesc>
 {
-	private readonly $listeners: Map<Variants<D>, MessageListener<ProtocolBlueprint>>;
+	private readonly $listeners: Map<Names<D>, MessageListener<ProtocolBlueprint>>;
 	
 	public constructor()
 	{
@@ -60,7 +60,7 @@ export class BackendComm<D extends ProtocolDesc>
 		return true;
 	}
 	
-	public async sendMessageToTab(tab: ValidBrowserTab, variant: ToFrontendOnly<D>, data?: Data[]) : Promise<"Sended" | BrowserNativeApiCallError>
+	public async sendMessageToTab(tab: ValidBrowserTab, variant: ToFrontendOnly<D>, data?: Data[]) : Async<"Sended", BrowserNativeApiCallError>
 	{
 		// TODO should response from content script be discarded?
 		const assuredData = isUndefined(data) ? [] : data;
@@ -70,7 +70,7 @@ export class BackendComm<D extends ProtocolDesc>
 		return "Sended";
 	}
 	
-	private async asyncInvokeAssignedListener(payload: unknown, sender: MessageSender) : Promise<{packet: Packet, result: Data} | CorruptedPacketError | CorruptedPacketDataError | NoListenerPresent>
+	private async asyncInvokeAssignedListener(payload: unknown, sender: MessageSender) : Async<{packet: Packet, result: Data}, CorruptedPacketError, CorruptedPacketDataError, NoListenerPresent>
 	{
 		const packet = CommProtocol.ValidatePacket(payload);
 		if(isError(CorruptedPacketError, packet)) return packet;

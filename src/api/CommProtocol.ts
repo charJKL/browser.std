@@ -1,4 +1,4 @@
-import { StdError } from "@src/util";
+import { StdError } from "@src/util/StdError";
 
 /**
  * Types used to define supported communication messages, it's params and results.

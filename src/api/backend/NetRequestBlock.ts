@@ -1,7 +1,8 @@
 import { Api, BrowserNativeApiCallError, NetRequestUpdatePacket, RegexOptions, IsRegexSupportedResult, type ApiReturn } from "@src/api/Api";
 import { BrowserApiError } from "@src/api/BrowserApiError";
-import { ArrayEx, isError, isFalse, isUndefined } from "@src/util";
-
+import { isError, isFalse, isUndefined } from "@src/util/Func";
+import { ArrayEx } from "@src/util/ex/ArrayEx";
+import { Async } from "@src/util/Helpers";
 
 // #region private type
 type NetRequestRuleCondition = browser.declarativeNetRequest._RuleCondition;
@@ -109,7 +110,7 @@ export class NetRequestBlock
 		return isRegexpSupportedResult.isSupported;
 	}
 	
-	private async getRuleUniqueId() : ApiReturn<number, GetRuleUniqueIdError>
+	private async getRuleUniqueId() : Async<number, GetRuleUniqueIdError>
 	{
 		const rules = await this.getRules();
 		if(isError(BrowserNativeApiCallError, rules)) return new GetRuleUniqueIdError(this, "Can't retrieve rules list for finding unique id.", {}, rules);
@@ -122,7 +123,7 @@ export class NetRequestBlock
 		return rulesIds.length + 1;
 	}
 	
-	private async getRule(id: number) : ApiReturn<NetRequestRule, BrowserNativeApiCallError, RuleNotFound>
+	private async getRule(id: number) : Async<NetRequestRule, BrowserNativeApiCallError, RuleNotFound>
 	{
 		const rules = await this.getRules();
 		if(isError(BrowserNativeApiCallError, rules)) return rules;

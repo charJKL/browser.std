@@ -1,10 +1,11 @@
 import { Api, ApiReturn, MessageSender, BrowserNativeApiCallError } from "@src/api/Api";
 import { Data, Packet, CommProtocol, CorruptedPacketError, ProtocolBlueprint, ProtocolDesc, ToBackendOnly, ToFrontendOnly } from "@src/api/CommProtocol";
 import { BrowserApiError } from "@src/api/BrowserApiError";
-import { ArrayEx, MultiMap, IComparable, safeCast, isError, isNotArray, isEmpty } from "@src/util";
+import { ArrayEx } from "@src/util/ex/ArrayEx";;
+import { MultiMap, IComparable } from "@src/util/MultiMap";
+import { Names, AllowBeAsync } from "@src/util/Helpers";
+import { safeCast, isError, isNotArray, isEmpty } from "@src/util/Func";
 
-type Variants<T extends {[key: string] : unknown}> = keyof T & string;
-type AllowBeAsync<T> = Promise<T> | T;
 type MessageListener<B extends ProtocolBlueprint> = (...args: [...B["args"], sender: MessageSender]) => AllowBeAsync<B["result"]>;
 
 // errors:
@@ -15,7 +16,7 @@ class ListenerThrowError extends FrontendCommError<"ListenerThrowError", {packet
 
 export class FrontendComm<D extends ProtocolDesc>
 {
-	private readonly $listeners: MultiMap<Variants<D>, NotificationListenerRecord>;
+	private readonly $listeners: MultiMap<Names<D>, NotificationListenerRecord>;
 	
 	public constructor()
 	{

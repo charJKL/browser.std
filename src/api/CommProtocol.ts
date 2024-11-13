@@ -11,9 +11,14 @@ export type ProtocolBlueprint = { direction: "toBackend" | "toFrontend", args: D
 export type ProtocolDesc = { [variant: ProtocolVariant] : ProtocolBlueprint };
 
 // helper types which are used to build `ProtolDesc`:
-type MessageProtocolDesc = (...args: Data[]) => Data; // TODO here must be any, becouse of shorcoming of TS, there is any solution for this?
-export type MessageToBackend<D extends MessageProtocolDesc> = { direction: "toBackend", args: Parameters<D>, result: ReturnType<D> };
-export type MessageToFrontend<D extends MessageProtocolDesc> = { direction: "toFrontend", args: Parameters<D>, result: ReturnType<D> };
+/**
+ * Because template args are contravariant we want `any` here to disable type check 
+ * otherwise building `ProtocolDesc` will have no sense.
+ */
+type MessageProtocolDesc = (...args: any[]) => Data; // eslint-disable-line @typescript-eslint/no-explicit-any -- reason is in comment above
+type Direction<N, D extends MessageProtocolDesc> = Parameters<D> extends Data ? N : never;
+export type MessageToBackend<D extends MessageProtocolDesc> = { direction: Direction<"toBackend", D>, args: Parameters<D>, result: ReturnType<D> };
+export type MessageToFrontend<D extends MessageProtocolDesc> = { direction: Direction<"toFrontend", D>, args: Parameters<D>, result: ReturnType<D> };
 
 // helper types which filters messages by direction:
 type Values<T extends { [key: string]: unknown }> = T[keyof T] & string;

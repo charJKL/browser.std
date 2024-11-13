@@ -4,7 +4,7 @@ import { BrowserApiError } from "@src/api/BrowserApiError";
 import { ArrayEx } from "@src/util/ex/ArrayEx";;
 import { MultiMap, IComparable } from "@src/util/MultiMap";
 import { Names, AllowBeAsync } from "@src/util/Helpers";
-import { safeCast, isError, isNotArray, isEmpty } from "@src/util/Func";
+import { unsafeCast, isError, isNotArray, isEmpty } from "@src/util/Func";
 
 type MessageListener<B extends ProtocolBlueprint> = (...args: [...B["args"], sender: MessageSender]) => AllowBeAsync<B["result"]>;
 
@@ -26,7 +26,7 @@ export class FrontendComm<D extends ProtocolDesc>
 	
 	public addMessageListener<V extends ToFrontendOnly<D>>(variant: V, listener: MessageListener<D[V]> ) : void
 	{
-		this.$listeners.set(variant, new NotificationListenerRecord(safeCast<MessageListener<D[V]>, MessageListener<ProtocolBlueprint>>(listener)));
+		this.$listeners.set(variant, new NotificationListenerRecord(unsafeCast<MessageListener<D[V]>, MessageListener<ProtocolBlueprint>>(listener)));
 	}
 	
 	public async sendMessage<V extends ToBackendOnly<D>>(variant: V, ...data: D[V]["args"]) : ApiReturn<D[V]["result"], BrowserNativeApiCallError, CorruptedPacketError>

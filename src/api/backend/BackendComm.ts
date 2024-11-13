@@ -1,7 +1,7 @@
 import { Api, MessageSender, SendResponse, BrowserNativeApiCallError, ApiReturn, BrowserTab } from "@src/api/Api";
 import { CommProtocol, CorruptedPacketError, Data, Packet, ProtocolBlueprint, ProtocolDesc, ToBackendOnly, ToFrontendOnly } from "@src/api/CommProtocol";
 import { BrowserApiError } from "@src/api/BrowserApiError";
-import { safeCast, isError, isEmpty, isNotArray, isUndefined, isNotUndefined, isString } from "@src/util/Func";
+import { unsafeCast, isError, isEmpty, isNotArray, isUndefined, isNotUndefined, isString } from "@src/util/Func";
 import { ArrayEx } from "@src/util/ex/ArrayEx";
 import { AllowBeAsync, Names, Async } from "@src/util/Helpers";
 
@@ -30,7 +30,7 @@ export class BackendComm<D extends ProtocolDesc>
 	
 	public addMessageListener<V extends ToBackendOnly<D>>(variant: V, listener: MessageListener<D[V]> ): void
 	{
-		this.$listeners.set(variant, safeCast<MessageListener<D[V]>, MessageListener<ProtocolBlueprint>>(listener));
+		this.$listeners.set(variant, unsafeCast<MessageListener<D[V]>, MessageListener<ProtocolBlueprint>>(listener));
 	}
 	
 	public async sendMessage<V extends ToFrontendOnly<D>>(variant: V, url: string, ...data: D[V]["args"]) : ApiReturn<boolean, NoTabsWasFound, SendWasntSuccessfulError, BrowserNativeApiCallError>

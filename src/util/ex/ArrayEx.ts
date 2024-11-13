@@ -1,4 +1,4 @@
-import { safeCast } from "@src/util/Func";
+import { unsafeCast } from "@src/util/Func";
 import { AllowBeAsync } from "@src/util/Helpers";
 
 export class ArrayEx
@@ -17,7 +17,7 @@ export class ArrayEx
 	public static AsyncMap<T, V>(array: Array<T>, callbackfn: (value: T, index: number, array: Array<T>) => AllowBeAsync<V>, thisArg?: unknown) : Promise<Array<V | Error>>
 	{
 		const waitingResult = array.map(callbackfn, thisArg);
-		const unwrapSettledValue = (result: PromiseSettledResult<V>) => result.status === "fulfilled" ? result.value : new Error(safeCast<any, string>(result.reason));
+		const unwrapSettledValue = (result: PromiseSettledResult<V>) => result.status === "fulfilled" ? result.value : new Error(unsafeCast<any, string>(result.reason));
 		const resolveSettledValues = (results: PromiseSettledResult<V>[]) => results.map(unwrapSettledValue);
 		return  Promise.allSettled(waitingResult).then(resolveSettledValues);
 	}

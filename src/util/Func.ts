@@ -10,4 +10,4 @@ export { isString, isNotString } from "@src/util/func/isString";
 export { isSymbol, isNotSymbol } from "@src/util/func/isSymbol";
 export { isTrue, isFalse } from "@src/util/func/isTrue";
 export { isUndefined, isNotUndefined } from "@src/util/func/isUndefined";
-export { safeCast } from "@src/util/func/safeCast";
+export { unsafeCast } from "@src/util/func/unsafeCast";

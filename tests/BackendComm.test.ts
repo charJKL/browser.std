@@ -1,31 +1,53 @@
-// TOOD how to configure VSCode TS for this file?
-import { BackendComm as ApiBackendComm } from "@src/api/backend/BackendComm";
-import { AddonScriptApiMethod } from "@src/api/CommProtocol";
+import { BackendComm as ApiBackendComm, NoTabsWasFound } from "@src/api/backend/BackendComm";
+import { MessageToFrontend } from "@src/api/CommProtocol";
+import { isUndefined } from "@src/util/Func";
 
-import { NoTabsWasFound } from "@src/api/backend/BackendComm";
+function getBrowserMock() : typeof browser
+{
+	/* eslint-disable -- we must use a lot of `any` type here */
+	const handler : ProxyHandler<any> =
+	{
+		get(target, key)
+		{
+			// TODO check property descriptor restrictions
+			if(isUndefined(target[key])) 
+			{
+				target[key] = new Proxy(new Function(), handler);
+			}
+			return target[key];
+		},
+		set(target, key, value)
+		{
+			// TODO check property descriptor restrictions
+			target[key] = value;
+			return true;
+		}
+	}
+	/* eslint-enable */
+	return new Proxy({}, handler) as typeof browser; 
+}
 
+beforeAll(function mockBrowserNativeAPIObject()
+{
+	global.browser = getBrowserMock();
+});
 
+beforeEach(() => {
+	jest.clearAllMocks();
+});
 
-
-test("I should be send message only to FrontendScripts.", () => {
+test("Using `api/BackendComm` only message to frontend shold be allowed.", async () => 
+{
+	global.browser.tabs.query = jest.fn().mockImplementation(async () => []);
 	
 	type Supported = 
 	{
-		"getData": AddonScriptApiMethod<[id: number], number>;
+		"getData": MessageToFrontend<() => number>
 	}
-
-	// TODO how to mock global.browser object?
-	//global.browser = {} as typeof browser; 
-	global.browser = { runtime: {} as typeof browser.runtime } as typeof browser; 
-	global.browser.runtime.sendMessage = jest.fn().mockImplementation(() => 2);
-	global.browser.runtime.onMessage.addListener = jest.fn();
-	//jest.spyOn(browser.runtime, "sendMessage");
-	Object.defineProperty(global.browser, 'runtime', { value: () => 0.5 })
-
-
+	const pageUrl = "www.settingsPage.com";
 	const BackendComm = new ApiBackendComm<Supported>();
+	const result = await BackendComm.sendMessage("getData", pageUrl);
 	
-	const result = BackendComm.sendMessage("getData", "settings/page", [23]);
-	
-	 expect(result).toBeInstanceOf(NoTabsWasFound);
+	expect(global.browser.tabs.query).toHaveBeenCalledWith({url: pageUrl});
+	expect(result).toBeInstanceOf(NoTabsWasFound);
 });

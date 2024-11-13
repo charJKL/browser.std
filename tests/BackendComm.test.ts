@@ -1,5 +1,5 @@
 import { BackendComm as ApiBackendComm, NoTabsWasFound } from "@src/api/backend/BackendComm";
-import { MessageToFrontend } from "@src/api/CommProtocol";
+import { MessageToBackend, MessageToFrontend } from "@src/api/CommProtocol";
 import { isUndefined } from "@src/util/Func";
 
 function getBrowserMock() : typeof browser
@@ -38,15 +38,16 @@ beforeEach(() => {
 
 test("Using `api/BackendComm` only message to frontend shold be allowed.", async () => 
 {
-	global.browser.tabs.query = jest.fn().mockImplementation(async () => []);
+	global.browser.tabs.query = jest.fn().mockImplementation(() => Promise.resolve([]));
 	
 	type Supported = 
 	{
-		"getData": MessageToFrontend<() => number>
+		"getUser": MessageToFrontend<(id: number) => {name: string}>;
+		"getData2": MessageToBackend<() => number>
 	}
 	const pageUrl = "www.settingsPage.com";
 	const BackendComm = new ApiBackendComm<Supported>();
-	const result = await BackendComm.sendMessage("getData", pageUrl);
+	const result = await BackendComm.sendMessage("getUser", pageUrl, 23);
 	
 	expect(global.browser.tabs.query).toHaveBeenCalledWith({url: pageUrl});
 	expect(result).toBeInstanceOf(NoTabsWasFound);

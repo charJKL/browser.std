@@ -10,9 +10,10 @@ export default tseslint.config(
 	{
 		files: ['**/*.{test.ts,ts,tsx,mts,cts}'],
 		rules: {
-			'no-undef': 'off',
+			"no-undef": "off",
+			"@typescript-eslint/no-extraneous-class": { allowStaticOnly: true },
 		},
-  },
+	},
 	{
 		languageOptions: 
 		{

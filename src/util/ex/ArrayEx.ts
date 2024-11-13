@@ -1,7 +1,7 @@
 import { safeCast } from "@src/util/Func";
 import { AllowBeAsync } from "@src/util/Helpers";
 
-export class ArrayEx // eslint-disable-line @typescript-eslint/no-extraneous-class -- there is not other way to implement it
+export class ArrayEx
 {
 	public static IsEmpty<T>(array: Array<T>) : boolean
 	{

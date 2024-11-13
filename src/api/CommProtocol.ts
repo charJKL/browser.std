@@ -26,7 +26,7 @@ export class CorruptedPacketError extends StdError<"CorruptedPacketError", {payl
 /**
  * CommProtocol
  */
-export abstract class CommProtocol // eslint-disable-line @typescript-eslint/no-extraneous-class -- it's matter of style, CommProtocol groups messages utils methods.
+export abstract class CommProtocol
 {
 	public static ValidatePacket(payload: unknown) : Packet | CorruptedPacketError
 	{
@@ -46,7 +46,7 @@ export abstract class CommProtocol // eslint-disable-line @typescript-eslint/no-
 /**
  * 
  */
-abstract class Serializer // eslint-disable-line @typescript-eslint/no-extraneous-class -- it's matter of style, Serializer groups 
+abstract class Serializer
 {
 	// TODO write support for StdError.
 	// TODO write support for Map.

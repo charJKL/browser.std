@@ -33,7 +33,7 @@ export class BackendComm<D extends ProtocolDesc>
 		this.$listeners.set(variant, unsafeCast<MessageListener<D[V]>, MessageListener<ProtocolBlueprint>>(listener));
 	}
 	
-	public async sendMessage<V extends ToFrontendOnly<D>>(variant: V, url: string, ...data: D[V]["args"]) : ApiReturn<boolean, NoTabsWasFound, SendWasntSuccessfulError, BrowserNativeApiCallError>
+	public async sendMessage<V extends ToFrontendOnly<D>>(url: string, variant: V, ...data: D[V]["args"]) : ApiReturn<boolean, NoTabsWasFound, SendWasntSuccessfulError, BrowserNativeApiCallError>
 	{
 		console.log("BackendComm.sendMessage()", "variant=", variant, "url=", url, "data=", data); // TODO debug only
 		const tabs = await Api.tabs.query({url});

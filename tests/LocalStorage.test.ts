@@ -38,7 +38,7 @@ test("Store `Map<,>` should be allowed, and `Map<,>` should be serialized", asyn
 	}
 	const localStorage= new ApiLocalStorage(blueprint);
 	const value = new Map([[1, "one"], [2, "two"]]);
-	const result = await localStorage.save("list", value);
+	const result = await localStorage.set("list", value);
 	
 	expect(global.browser.storage.local.set).toHaveBeenCalledWith({"list": {__map__: true, entries: [{key: 1, value: "one"},{key: 2, value: "two"},]}});
 	expect(result).toBe(value);

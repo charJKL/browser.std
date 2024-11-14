@@ -29,7 +29,7 @@ export class LocalStorage<B extends StorageBlueprint>
 		this.$serializers = [new MapSerializer()];
 	}
 	
-	public async save<K extends StorageBlueprintKeyName<B>>(key: K, value: B[K]) : ApiReturn<B[K], BrowserNativeApiCallError>
+	public async set<K extends StorageBlueprintKeyName<B>>(key: K, value: B[K]) : ApiReturn<B[K], BrowserNativeApiCallError>
 	{
 		// TODO check if storage limit is exceeded.
 		const entry = { [key]: value };

@@ -21,7 +21,7 @@ export class LocalStorage<B extends StorageBlueprint>
 	
 	public async get<K extends StorageBlueprintKeyName<B>>(key: K) : ApiReturn<B[K], BrowserNativeApiCallError>
 	{
-		const entry = { key: this.$blueprint[key] }; 
+		const entry = { [key]: this.$blueprint[key] }; 
 		const result = await Api.storage.local.get(entry);
 		if(isError(BrowserNativeApiCallError, result)) return result;
 		return result as B[K]; // TODO does this casting safe?

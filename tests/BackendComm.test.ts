@@ -47,7 +47,7 @@ test("Using `api/BackendComm` only message to frontend shold be allowed.", async
 	}
 	const pageUrl = "www.settingsPage.com";
 	const BackendComm = new ApiBackendComm<Supported>();
-	const result = await BackendComm.sendMessage("getUser", pageUrl, 23);
+	const result = await BackendComm.sendMessage(pageUrl, "getUser", 23);
 	
 	expect(global.browser.tabs.query).toHaveBeenCalledWith({url: pageUrl});
 	expect(result).toBeInstanceOf(NoTabsWasFound);

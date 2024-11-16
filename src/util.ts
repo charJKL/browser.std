@@ -17,4 +17,4 @@ export { unsafeCast } from "@src/util/func/unsafeCast";
 export { MultiMap, IComparable } from "@src/util/MultiMap";
 export { StdError }  from "@src/util/StdError";
 
-export { AllowBeAsync } from "@src/util/Helpers";
+export { Async, Names, AllowBeAsync } from "@src/util/Helpers";

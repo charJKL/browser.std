@@ -8,6 +8,9 @@ type StorageBlueprint = { [key: string]: Data };
 type StorageBlueprintKeyName<B extends StorageBlueprint> = Exclude<keyof B, symbol | number>;
 // #endregion
 
+// errors
+export { BrowserNativeApiCallError } from "@src/api/Api";
+
 interface ISerializer<T extends Data>
 {
 	serialize(value: T) : Data

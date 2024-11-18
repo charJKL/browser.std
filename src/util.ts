@@ -1,5 +1,6 @@
 export { ArrayEx } from "@src/util/ex/ArrayEx";
 export { DateEx } from "@src/util/ex/DateEx";
+export { MapEx } from "@src/util/ex/MapEx";
 
 export { hasProp } from "@src/util/func/hasProp";
 export { isArray, isNotArray } from "@src/util/func/isArray";

@@ -13,3 +13,8 @@ export type Names<T extends {[key: string] : unknown}> = keyof T & string;
  * Type useful in return types, indicating that function is allowed to by `async`.
  */
 export type AllowBeAsync<T> = Promise<T> | T;
+
+/**
+ * Make one property of type optional.
+ */
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>

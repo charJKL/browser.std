@@ -90,6 +90,7 @@ type EncodedMap = { [MapSerializer.$propertyName]: true, entries: Array<{key: st
  */
 class MapSerializer implements ISerializer<Map<string, DataPrimitive>>
 {
+	// TODO DRY `CommProtocol` also have Map<> serializer.
 	static readonly $propertyName = "__map__";
 	
 	public serialize(value: Data): Data

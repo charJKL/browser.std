@@ -1,9 +1,10 @@
+import { hasProp, isArray, isObject, unsafeCast } from "@src/util";
 import { StdError } from "@src/util/StdError";
 
 /**
  * Types used to define supported communication messages, it's params and results.
  */
-export type Data = { [key: string]: Data } | Array<Data> | string | number | boolean;
+export type Data = { [key: string]: Data } | Map<Data, Data> | Array<Data> | string | number | boolean;
 export type Packet = { variant: string, data: Data };
 
 type ProtocolVariant = string;
@@ -49,19 +50,42 @@ export abstract class CommProtocol
 }
 
 /**
- * 
+ * Serializer
  */
 abstract class Serializer
 {
+	static readonly $type = "__TYPE__";
+	
 	// TODO write support for StdError.
-	// TODO write support for Map.
 	static Serialize(value: Data) : string
 	{
-		return JSON.stringify(value);
+		return JSON.stringify(value, Serializer.replacer);
 	}
 	
 	static Deserialize(value: string) : Data
 	{
-		return JSON.parse(value) as Data; // TODO how to verify if returned json is valid?
+		return JSON.parse(value, Serializer.reviver) as Data; // TODO how to verify if returned json is valid?
+	}
+	
+	static replacer(this: void, key: unknown, value: unknown) : unknown
+	{
+		if(value instanceof Map)
+		{
+			return { [Serializer.$type]: "MAP", entries: Array.from(value.entries()) }
+		}
+		return value;
+	}
+	
+	static reviver(this: void, key: unknown, value: unknown) : unknown
+	{
+		if(hasProp(value, Serializer.$type))
+		{
+			if(hasProp(value, "entries"))
+			{
+				return new Map(unsafeCast<unknown, Iterable<[unknown, unknown]>>(value.entries)); // TODO this can be checked
+			}
+		}
+		return value;
 	}
 }
+

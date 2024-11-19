@@ -11,7 +11,8 @@ export default tseslint.config(
 		files: ['**/*.{test.ts,ts,tsx,mts,cts}'],
 		rules: {
 			"no-undef": "off",
-			"@typescript-eslint/no-extraneous-class": ["error", { allowStaticOnly: true }]
+			"@typescript-eslint/no-extraneous-class": ["error", { allowStaticOnly: true }],
+			"@typescript-eslint/no-invalid-void-type": ["error", { allowAsThisParameter: true}]
 		},
 	},
 	{

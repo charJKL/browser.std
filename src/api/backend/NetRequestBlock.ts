@@ -11,7 +11,7 @@ type NetRequestRuleAction = browser.declarativeNetRequest._RuleAction;
 
 // #region public types
 export type NetRequestRule = browser.declarativeNetRequest.Rule;
-export type NetRequestRulePart = { regexp: string };
+export type NetRequestRuleDesc = { regexp: string };
 export type NetRequestRuleChange = { id: number, regexp: string };
 // #endregion
 
@@ -43,7 +43,7 @@ export class NetRequestBlock
 		return await Api.declarativeNetRequest.getDynamicRules();
 	}
 	
-	public async addRule(rule: NetRequestRulePart) : ApiReturn<NetRequestRule, RegexpIsNotSupported, GetRuleUniqueIdError, BrowserNativeApiCallError>
+	public async addRule(rule: NetRequestRuleDesc) : ApiReturn<NetRequestRule, RegexpIsNotSupported, GetRuleUniqueIdError, BrowserNativeApiCallError>
 	{
 		const isRegexpValid = await this.isRegexpSupported(rule.regexp);
 		if(isError(BrowserNativeApiCallError, isRegexpValid)) return isRegexpValid;

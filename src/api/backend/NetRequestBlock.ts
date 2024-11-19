@@ -1,6 +1,6 @@
 import { Api, BrowserNativeApiCallError, NetRequestUpdatePacket, RegexOptions, IsRegexSupportedResult, type ApiReturn } from "@src/api/Api";
 import { BrowserApiError } from "@src/api/BrowserApiError";
-import { isError, isFalse, isUndefined } from "@src/util/Func";
+import { isError, isFalse, isObject, isUndefined } from "@src/util/Func";
 import { ArrayEx } from "@src/util/ex/ArrayEx";
 import { Async } from "@src/util/Helpers";
 
@@ -87,13 +87,14 @@ export class NetRequestBlock
 		return rule;
 	}
 	
-	public async deleteRule(ruleId: number): ApiReturn<boolean, BrowserNativeApiCallError, RuleNotFound>
+	public async removeRule(ruleDesc: { id: number} | number): ApiReturn<boolean, BrowserNativeApiCallError, RuleNotFound>
 	{
-		const rule = await this.getRule(ruleId);
+		const id = isObject(ruleDesc) ? ruleDesc.id : ruleDesc;
+		const rule = await this.getRule(id);
 		if(isError(BrowserNativeApiCallError, rule)) return rule;
 		if(isError(RuleNotFound, rule)) return rule;
 		
-		const packet : NetRequestUpdatePacket = { removeRuleIds: [ruleId] }
+		const packet : NetRequestUpdatePacket = { removeRuleIds: [rule.id] }
 		const result = await Api.declarativeNetRequest.updateDynamicRules(packet);
 		if(isError(BrowserNativeApiCallError, result)) return result;
 		return true;

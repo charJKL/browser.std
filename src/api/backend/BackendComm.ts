@@ -1,9 +1,9 @@
-import { Api, MessageSender, SendResponse, BrowserNativeApiCallError, ApiReturn, BrowserTab } from "@src/api/Api";
+import { Api, MessageSender, SendResponse, BrowserNativeApiCallError, BrowserTab } from "@src/api/Api";
 import { CommProtocol, CorruptedPacketError, Data, Packet, ProtocolBlueprint, ProtocolDesc, ToBackendOnly, ToFrontendOnly } from "@src/api/CommProtocol";
 import { BrowserApiError } from "@src/api/BrowserApiError";
 import { unsafeCast, isError, isEmpty, isNotArray, isUndefined, isNotUndefined, isString } from "@src/util/Func";
 import { ArrayEx } from "@src/util/ex/ArrayEx";
-import { AllowBeAsync, Names, Async } from "@src/util/Helpers";
+import { ApiReturn, AllowBeAsync, Names, Async } from "@src/util/Helpers";
 
 type MessageListener<B extends ProtocolBlueprint> = (...args: [...B["args"], sender: MessageSender]) => AllowBeAsync<B["result"]>;
 type ValidBrowserTab = BrowserTab & { id: number };

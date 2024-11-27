@@ -5,6 +5,11 @@
 export type Async<T1, T2 = never, T3 = never, T4 = never> = Promise<T1 | T2 | T3 | T4>;
 
 /**
+ * Build return type.
+ */
+export type ApiReturn<T0, T1 = never, T2 = never, T3 = never> = Promise<T0 | T1 | T2 | T3>;
+
+/**
  * Extract property names from object.
  */
 export type Names<T extends {[key: string] : unknown}> = keyof T & string;

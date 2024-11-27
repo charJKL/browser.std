@@ -1,4 +1,5 @@
 import { StdError } from "@src/util/StdError";
+import { ApiReturn } from "@src/util/Helpers";
 
 export type InstallationDetails = browser.runtime._OnInstalledDetails;
 export type UpdateDetails = browser.runtime._OnUpdateAvailableDetails;
@@ -16,7 +17,6 @@ export type QueryInfo = browser.tabs._QueryQueryInfo;
 export type BrowserTab = browser.tabs.Tab;
 export type SendMessageToTabOptions = browser.tabs._SendMessageOptions;
 
-export type ApiReturn<T0, T1 = never, T2 = never, T3 = never> = Promise<T0 | T1 | T2 | T3>;
 
 /**
  * Wrapper class around all native Api call.

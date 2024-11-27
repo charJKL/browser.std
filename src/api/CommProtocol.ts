@@ -1,5 +1,5 @@
-import { hasProp, isArray, isObject, unsafeCast } from "@src/util";
 import { StdError } from "@src/util/StdError";
+import { hasProp, unsafeCast } from "@src/util";
 
 /**
  * Types used to define supported communication messages, it's params and results.
@@ -8,7 +8,8 @@ export type Data = { [key: string]: Data } | Map<Data, Data> | Array<Data> | str
 export type Packet = { variant: string, data: Data };
 
 type ProtocolVariant = string;
-export type ProtocolBlueprint = { direction: "toBackend" | "toFrontend", args: Data[], result: Data };
+type ProtocolResponse = Data;
+export type ProtocolBlueprint = { direction: "toBackend" | "toFrontend", args: Data[], result: ProtocolResponse };
 export type ProtocolDesc = { [variant: ProtocolVariant] : ProtocolBlueprint };
 
 // helper types which are used to build `ProtolDesc`:

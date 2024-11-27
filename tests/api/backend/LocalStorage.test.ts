@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method -- global.browser.storage.local.get method is unbund */ 
-import { LocalStorage as ApiLocalStorage } from "@src/api/backend/LocalStorage";
-import { getBrowserMock } from "@src/util/tests/BrowserMock";
+import { LocalStorage as ApiLocalStorage } from "$src/api/backend/LocalStorage";
+import { getBrowserMock } from "$src/util/tests/BrowserMock";
 
 beforeAll(function mockBrowserNativeAPIObject()
 {

@@ -1,6 +1,6 @@
-import { BackendComm as ApiBackendComm, NoTabsWasFound } from "@src/api/backend/BackendComm";
-import { MessageToBackend, MessageToFrontend } from "@src/api/CommProtocol";
-import { getBrowserMock } from "@src/util/tests/BrowserMock";
+import { BackendComm as ApiBackendComm, NoTabsWasFound } from "$src/api/backend/BackendComm";
+import { MessageToBackend, MessageToFrontend } from "$src/api/CommProtocol";
+import { getBrowserMock } from "$src/util/tests/BrowserMock";
 
 beforeAll(function mockBrowserNativeAPIObject()
 {

@@ -1,6 +1,6 @@
-import { Api, BrowserNativeApiCallError } from "@src/api/Api";
-import { hasProp, isError, unsafeCast } from "@src/util/Func";
-import { ApiReturn } from "@src/util/Types";
+import { Api, BrowserNativeApiCallError } from "$src/api/Api";
+import { hasProp, isError, unsafeCast } from "$src/util/Func";
+import { ApiReturn } from "$src/util/Types";
 
 // #region private types
 type DataPrimitive = { [key: string] : DataPrimitive } | Array<DataPrimitive> | string | number | boolean;
@@ -10,7 +10,7 @@ type StorageBlueprintKeyName<B extends StorageBlueprint> = Exclude<keyof B, symb
 // #endregion
 
 // errors
-export { BrowserNativeApiCallError } from "@src/api/Api";
+export { BrowserNativeApiCallError } from "$src/api/Api";
 
 interface ISerializer<T extends Data>
 {

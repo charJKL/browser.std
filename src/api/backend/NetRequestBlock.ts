@@ -1,8 +1,8 @@
-import { Api, BrowserNativeApiCallError, NetRequestUpdatePacket, RegexOptions, IsRegexSupportedResult } from "@src/api/Api";
-import { BrowserApiError } from "@src/api/BrowserApiError";
-import { isError, isFalse, isObject, isUndefined } from "@src/util/Func";
-import { ArrayEx } from "@src/util/ex/ArrayEx";
-import { ApiReturn, Async } from "@src/util/Types";
+import { Api, BrowserNativeApiCallError, NetRequestUpdatePacket, RegexOptions, IsRegexSupportedResult } from "$src/api/Api";
+import { BrowserApiError } from "$src/api/BrowserApiError";
+import { isError, isFalse, isObject, isUndefined } from "$src/util/Func";
+import { ArrayEx } from "$src/util/ex/ArrayEx";
+import { ApiReturn, Async } from "$src/util/Types";
 
 
 // #region private type

@@ -1,5 +1,5 @@
-import { StdError } from "@src/util/StdError";
-import { hasProp, unsafeCast } from "@src/util";
+import { StdError } from "$src/util/StdError";
+import { hasProp, unsafeCast } from "$src/util";
 
 /**
  * Types used to define supported communication messages, it's params and results.

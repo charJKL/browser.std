@@ -1,1 +1,1 @@
-export { FrontendComm } from "@src/api/frontend/FrontendComm";
+export { FrontendComm } from "$src/api/frontend/FrontendComm";

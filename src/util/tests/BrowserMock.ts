@@ -1,4 +1,4 @@
-import { isUndefined } from "@src/util/Func";
+import { isUndefined } from "$src/util/Func";
 
 export function getBrowserMock() : typeof browser
 {

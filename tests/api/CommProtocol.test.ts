@@ -1,4 +1,4 @@
-import { CommProtocol } from "@src/api/CommProtocol";
+import { CommProtocol } from "$src/api/CommProtocol";
 
 const data =
 [

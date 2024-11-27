@@ -3,13 +3,7 @@ import { StdError } from "@src/util/StdError";
 /**
  * Base class for all errors returned from API calls.
  */
-export abstract class BrowserApiError<ID extends string, API, I extends object> extends StdError<ID, I>
+export abstract class BrowserApiError<T extends string, I extends object> extends StdError<T, I>
 {
-	private readonly $api: API;
 	
-	constructor(api: API, message: string, info: I, cause?: unknown)
-	{
-		super(message, info, cause);
-		this.$api = api;
-	}
 }

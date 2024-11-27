@@ -1,5 +1,5 @@
 import { unsafeCast } from "@src/util/Func";
-import { AllowBeAsync } from "@src/util/Helpers";
+import { AllowBeAsync } from "@src/util/Types";
 
 export class ArrayEx
 {

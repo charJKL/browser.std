@@ -1,6 +1,6 @@
 import { Api, BrowserNativeApiCallError } from "@src/api/Api";
 import { hasProp, isError, unsafeCast } from "@src/util/Func";
-import { ApiReturn } from "@src/util/Helpers";
+import { ApiReturn } from "@src/util/Types";
 
 // #region private types
 type DataPrimitive = { [key: string] : DataPrimitive } | Array<DataPrimitive> | string | number | boolean;

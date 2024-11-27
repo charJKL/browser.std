@@ -2,7 +2,7 @@ import { Api, BrowserNativeApiCallError, NetRequestUpdatePacket, RegexOptions, I
 import { BrowserApiError } from "@src/api/BrowserApiError";
 import { isError, isFalse, isObject, isUndefined } from "@src/util/Func";
 import { ArrayEx } from "@src/util/ex/ArrayEx";
-import { ApiReturn, Async } from "@src/util/Helpers";
+import { ApiReturn, Async } from "@src/util/Types";
 
 
 // #region private type

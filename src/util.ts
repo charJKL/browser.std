@@ -19,4 +19,4 @@ export { unsafeCast } from "@src/util/func/unsafeCast";
 export { MultiMap, IComparable } from "@src/util/MultiMap";
 export { StdError }  from "@src/util/StdError";
 
-export { Async, Names, AllowBeAsync, MakeOptional } from "@src/util/Helpers";
+export { Async, Names, AllowBeAsync, MakeOptional } from "@src/util/Types";

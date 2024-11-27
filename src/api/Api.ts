@@ -1,5 +1,5 @@
 import { StdError } from "@src/util/StdError";
-import { ApiReturn } from "@src/util/Helpers";
+import { ApiReturn } from "@src/util/Types";
 
 export type InstallationDetails = browser.runtime._OnInstalledDetails;
 export type UpdateDetails = browser.runtime._OnUpdateAvailableDetails;

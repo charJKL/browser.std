@@ -3,7 +3,7 @@ import { Data, Packet, CommProtocol, CorruptedPacketError, ProtocolBlueprint, Pr
 import { BrowserApiError } from "@src/api/BrowserApiError";
 import { ArrayEx } from "@src/util/ex/ArrayEx";;
 import { MultiMap, IComparable } from "@src/util/MultiMap";
-import { Names, AllowBeAsync, ApiReturn } from "@src/util/Helpers";
+import { Names, AllowBeAsync, ApiReturn } from "@src/util/Types";
 import { unsafeCast, isError, isNotArray, isEmpty } from "@src/util/Func";
 
 type MessageListener<B extends ProtocolBlueprint> = (...args: [...B["args"], sender: MessageSender]) => AllowBeAsync<B["result"]>;

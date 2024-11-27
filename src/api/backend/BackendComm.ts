@@ -8,13 +8,6 @@ import { AllowBeAsync, Names, Async } from "@src/util/Helpers";
 type MessageListener<B extends ProtocolBlueprint> = (...args: [...B["args"], sender: MessageSender]) => AllowBeAsync<B["result"]>;
 type ValidBrowserTab = BrowserTab & { id: number };
 
-// errors:
-abstract class BackendCommError<ID extends string, I extends object> extends BrowserApiError<ID, BackendComm<any>, I> { };
-export class NoTabsWasFound extends BackendCommError<"NoTabsWasFound", {url: string}>{ };
-export class SendWasntSuccessfulError extends BackendCommError<"SendWasntSuccessfulError", {results: unknown[]}>{ };
-export class CorruptedPacketDataError extends BackendCommError<"CorruptedPacketDataError", {packet: Packet}>{ };
-export class NoListenerPresent extends BackendCommError<"NoListenerPresent", {packet: Packet}>{ };
-
 /**
  * BackendComm
  */
@@ -38,13 +31,13 @@ export class BackendComm<D extends ProtocolDesc>
 		console.log("BackendComm.sendMessage()", "variant=", variant, "url=", url, "data=", data); // TODO debug only
 		const tabs = await Api.tabs.query({url});
 		if(isError(BrowserNativeApiCallError, tabs)) return tabs;
-		if(isEmpty(tabs)) return new NoTabsWasFound(this, "Wanted url is not opened in any tab.", {url});
+		if(isEmpty(tabs)) return new NoTabsWasFound({backendComm: this, url});
 		
 		const validTabs = tabs.filter((tab: BrowserTab) : tab is ValidBrowserTab => isNotUndefined(tab.id));
 		const results = await ArrayEx.AsyncMap(validTabs, (tab) => this.sendMessageToTab.call(this, tab, variant, data));
 		
 		const wasErrorOccuredDuringDispatchingNotifications = (result: (BrowserNativeApiCallError | Error | "Sended")) => isString(result);
-		if(results.find(wasErrorOccuredDuringDispatchingNotifications)) return new SendWasntSuccessfulError(this, "Notifiaction wasnt send successful to all tabs", {results});
+		if(results.find(wasErrorOccuredDuringDispatchingNotifications)) return new SendWasntSuccessfulError({backendComm: this, results});
 		
 		return true;
 	}
@@ -77,10 +70,68 @@ export class BackendComm<D extends ProtocolDesc>
 	{
 		const packet = CommProtocol.ValidatePacket(payload);
 		if(isError(CorruptedPacketError, packet)) return packet;
-		if(isNotArray(packet.data)) return new CorruptedPacketDataError(this, "Data sended to background script is corrupted.", {packet});
+		if(isNotArray(packet.data)) return new CorruptedPacketDataError({ backendComm: this, packet });
 		const listener = this.$listeners.get(packet.variant);
-		if(isUndefined(listener)) return new NoListenerPresent(this, "There isn't any listener for this message", {packet});
+		if(isUndefined(listener)) return new NoListenerPresent({ backendComm: this, packet });
 		const result = await listener(...packet.data, sender);
 		return {packet, result};
 	}	
+}
+
+
+// errors:
+
+
+
+/**
+ * NoTabsWasFound
+ */
+export type NoTabsWasFoundInfo = { backendComm: BackendComm<ProtocolDesc>, url: string };
+export class NoTabsWasFound extends BrowserApiError<"NoTabsWasFound", NoTabsWasFoundInfo>
+{
+	static MESSAGE = "Wanted url is not opened in any tab.";
+	
+	constructor(info: NoTabsWasFoundInfo)
+	{
+		super("NoTabsWasFound", NoTabsWasFound.MESSAGE, info);
+	}
+}
+
+/**
+ * SendWasntSuccessfulError
+ */
+export type SendWasntSuccessfulErrorInfo = { backendComm: BackendComm<ProtocolDesc>, results: unknown[] }
+export class SendWasntSuccessfulError extends BrowserApiError<"SendWasntSuccessfulError", SendWasntSuccessfulErrorInfo>
+{
+	static MESSAGE = "Notifiaction wasnt send successful to all tabs.";
+	
+	constructor(info: SendWasntSuccessfulErrorInfo)
+	{
+		super("SendWasntSuccessfulError", SendWasntSuccessfulError.MESSAGE, info);
+	}
+}
+
+/**
+ * CorruptedPacketDataError
+ */
+export type CorruptedPacketDataErrorInfo = { backendComm: BackendComm<ProtocolDesc>, packet: Packet };
+export class CorruptedPacketDataError extends BrowserApiError<"CorruptedPacketDataError", CorruptedPacketDataErrorInfo>
+{
+	static MESSAGE = "Data sended to background script is corrupted.";
+	
+	constructor(info: CorruptedPacketDataErrorInfo)
+	{
+		super("CorruptedPacketDataError", CorruptedPacketDataError.MESSAGE, info);
+	}
+}
+
+export type NoListenerPresentInfo = { backendComm: BackendComm<ProtocolDesc>, packet: Packet };
+export class NoListenerPresent extends BrowserApiError<"NoListenerPresent", NoListenerPresentInfo>
+{
+	static MESSAGE = "There isn't any listener for this message";
+
+	constructor(info: NoListenerPresentInfo)
+	{
+		super("NoListenerPresent", NoListenerPresent.MESSAGE, info);
+	}
 }

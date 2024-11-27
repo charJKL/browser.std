@@ -18,14 +18,6 @@ export type SendMessageToTabOptions = browser.tabs._SendMessageOptions;
 
 export type ApiReturn<T0, T1 = never, T2 = never, T3 = never> = Promise<T0 | T1 | T2 | T3>;
 
-// errors:
-export class BrowserNativeApiCallError extends StdError<"BrowserNativeApiCallError", object> { };
-
-function returnError(reason: unknown) : BrowserNativeApiCallError
-{
-	return new BrowserNativeApiCallError("Browser native method call throw error.", {}, reason);
-}
-
 /**
  * Wrapper class around all native Api call.
  * Mainly because of 3 reasons:
@@ -115,5 +107,23 @@ export const Api =
 		{
 			return browser.tabs.sendMessage(tabId, message, options).catch(returnError);
 		}
+	}
+}
+
+function returnError(reason: unknown) : BrowserNativeApiCallError
+{
+	return new BrowserNativeApiCallError(reason);
+}
+
+/**
+ * BrowserNativeApiCallError
+ */
+export class BrowserNativeApiCallError extends StdError<"BrowserNativeApiCallError", object>
+{
+	static MESSAGE = "Browser native method call throw error.";
+	
+	constructor(cause: unknown)
+	{
+		super("BrowserNativeApiCallError", BrowserNativeApiCallError.MESSAGE, {}, cause)
 	}
 }

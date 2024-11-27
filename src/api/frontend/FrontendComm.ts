@@ -8,12 +8,6 @@ import { unsafeCast, isError, isNotArray, isEmpty } from "@src/util/Func";
 
 type MessageListener<B extends ProtocolBlueprint> = (...args: [...B["args"], sender: MessageSender]) => AllowBeAsync<B["result"]>;
 
-// errors:
-abstract class FrontendCommError<ID extends string, I extends object> extends BrowserApiError<ID, FrontendComm<any>, I> { };
-class CorruptedPacketDataError extends FrontendCommError<"CorruptedPacketDataError", {packet: Packet}>{ };
-class NoListenerPresent extends FrontendCommError<"NoListenerPresent", {packet: Packet}>{ };
-class ListenerThrowError extends FrontendCommError<"ListenerThrowError", {packet: Packet}> { };
-
 export class FrontendComm<D extends ProtocolDesc>
 {
 	private readonly $listeners: MultiMap<Names<D>, NotificationListenerRecord>;
@@ -57,23 +51,21 @@ export class FrontendComm<D extends ProtocolDesc>
 	{
 		const packet = CommProtocol.ValidatePacket(payload);
 		if(isError(CorruptedPacketError, packet)) return packet;
-		if(isNotArray(packet.data)) return new CorruptedPacketDataError(this, "Data sended from background script is corrupted", {packet});
+		if(isNotArray(packet.data)) return new CorruptedPacketDataError({frontendComm: this, packet});
 		
 		const records = this.$listeners.get(packet.variant);
-		if(isEmpty(records)) return new NoListenerPresent(this, "There isn't any listener for this message.", {packet});
+		if(isEmpty(records)) return new NoListenerPresent({ frontendComm: this, packet });
 		
 		const args = packet.data;
 		const listeners = records.map((records) => records.listener);
 		const settledResults = await ArrayEx.AsyncMap(listeners, (listener) => listener(...args, sender));
 		
-		const toError = (error: Error) => new ListenerThrowError(this, "Listener for this message throw error.", {packet}, error);
+		const toError = (error: Error) => new ListenerThrowError({frontendComm: this, packet}, error);
 		const results = ArrayEx.TransformError(settledResults, toError);
 		
 		return results;
 	}
 }
-
-
 
 /**
  * NotificationListenerRecord
@@ -95,5 +87,44 @@ class NotificationListenerRecord implements IComparable<NotificationListenerReco
 	public isEqual(this: NotificationListenerRecord, obj: NotificationListenerRecord): boolean 
 	{
 		return this.$listener === obj.$listener;
+	}
+}
+
+/**
+ * CorruptedPacketDataError
+ */
+export type CorruptedPacketDataErrorInfo = { frontendComm: FrontendComm<ProtocolDesc>, packet: Packet };
+export class CorruptedPacketDataError extends BrowserApiError<"CorruptedPacketDataError", CorruptedPacketDataErrorInfo>
+{
+	static MESSAGE = "Data sended from background script is corrupted";
+	
+	constructor(info: CorruptedPacketDataErrorInfo)
+	{
+		super("CorruptedPacketDataError", CorruptedPacketDataError.MESSAGE, info);
+	}
+}
+
+/**
+ * NoListenerPresent
+ */
+export type NoListenerPresentInfo = { frontendComm: FrontendComm<ProtocolDesc>, packet: Packet}
+export class NoListenerPresent extends BrowserApiError<"NoListenerPresent", NoListenerPresentInfo>
+{
+	static MESSAGE = "There isn't any listener for this message.";
+	
+	constructor(info: NoListenerPresentInfo)
+	{
+		super("NoListenerPresent", NoListenerPresent.MESSAGE, info);
+	}
+}
+
+export type ListenerThrowErrorInfo = { frontendComm: FrontendComm<ProtocolDesc>, packet: Packet }
+export class ListenerThrowError extends BrowserApiError<"ListenerThrowError", ListenerThrowErrorInfo>
+{
+	static MESSAGE = "Listener for this message throw error.";
+	
+	constructor(info: ListenerThrowErrorInfo, cause: unknown)
+	{
+		super("ListenerThrowError", ListenerThrowError.MESSAGE, info, cause);
 	}
 }
